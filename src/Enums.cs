@@ -4,16 +4,19 @@
     {
         public class Sounds
         {
-            private static SoundID? UI_Slugcat_VineBoomDie = new SoundID("UI_Slugcat_VineBoomDie", true);
+            public static SoundID? VineBoom = new SoundID("VineBoom", true);
+            public static SoundID? VineBoomLoud = new SoundID("VineBoomLoud", true);
 
             public static void RegisterValues()
             {
-                UI_Slugcat_VineBoomDie = new SoundID("UI_Slugcat_VineBoomDie", true);
+                VineBoom = new SoundID("VineBoom", true);
+                VineBoomLoud = new SoundID("VineBoomLoud", true);
             }
 
             public static void UnregisterValues()
             {
-                UI_Slugcat_VineBoomDie?.Unregister();
+                VineBoom?.Unregister();
+                VineBoomLoud?.Unregister();
             }
         }
     }
