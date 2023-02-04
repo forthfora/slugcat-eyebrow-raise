@@ -1,1 +1,0 @@
-[ADD]UI_Slugcat_VineBoomDie : vineboom/vol=0.6
