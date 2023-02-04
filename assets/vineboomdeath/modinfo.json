@@ -1,0 +1,11 @@
+{
+	"id": "vineboomdeath",
+	"name": "Vine Boom Death",
+	"version": "1.0.0",
+	"target_game_version": "v1.9.03",
+	"authors": "forthbridge",
+	"description": "vine boom",
+	"requirements": [],
+	"requirements_names": [],
+	"checksum_override_version": false
+}
