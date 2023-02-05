@@ -3,7 +3,7 @@ using System.Drawing;
 using Menu.Remix.MixedUI;
 using UnityEngine;
 
-namespace VineBoomDeath
+namespace SlugcatEyebrowRaise
 {
     // Based on the options script from SBCameraScroll by SchuhBaum
     // https://github.com/SchuhBaum/SBCameraScroll/blob/Rain-World-v1.9/SourceCode/MainModOptions.cs
@@ -59,12 +59,12 @@ namespace VineBoomDeath
                 InitializeMarginAndPos();
 
             AddNewLine();
-            AddTextLabel("Vine Boom Death", bigText: true);
+            AddTextLabel("Slugcat Eyebrow Raise", bigText: true);
             DrawTextLabels(ref Tabs[tabIndex]);
 
             AddNewLine(0.5f);
-            AddTextLabel("Version " + VineBoomDeath.VERSION, FLabelAlignment.Left);
-            AddTextLabel("by " + VineBoomDeath.AUTHOR, FLabelAlignment.Right);
+            AddTextLabel("Version " + SlugcatEyebrowRaise.VERSION, FLabelAlignment.Left);
+            AddTextLabel("by " + SlugcatEyebrowRaise.AUTHOR, FLabelAlignment.Right);
             DrawTextLabels(ref Tabs[tabIndex]);
 
             AddNewLine();

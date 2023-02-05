@@ -1,4 +1,4 @@
-﻿namespace VineBoomDeath
+﻿namespace SlugcatEyebrowRaise
 {
     internal class Enums
     {

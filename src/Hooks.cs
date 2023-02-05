@@ -4,7 +4,7 @@ using MonoMod.Cil;
 using System;
 using UnityEngine;
 
-namespace VineBoomDeath
+namespace SlugcatEyebrowRaise
 {
     internal static class Hooks
     {
@@ -20,7 +20,7 @@ namespace VineBoomDeath
         {
             orig(self);
 
-            MachineConnector.SetRegisteredOI(VineBoomDeath.MOD_ID, Options.instance);
+            MachineConnector.SetRegisteredOI(SlugcatEyebrowRaise.MOD_ID, Options.instance);
             Enums.Sounds.RegisterValues();
         }
 
@@ -40,7 +40,7 @@ namespace VineBoomDeath
             {
                 c.MoveAfterLabels();
                 c.Remove();
-                c.Emit<Enums.Sounds>(OpCodes.Ldsfld, "VineBoomLoud");
+                c.Emit<Enums.Sounds>(OpCodes.Ldsfld, Options.vineBoomBassBoosted.Value ? "VineBoomLoud" : "VineBoom");
             }
         }
     }

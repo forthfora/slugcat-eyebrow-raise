@@ -6,15 +6,15 @@ using BepInEx.Logging;
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 #pragma warning restore CS0618
 
-namespace VineBoomDeath
+namespace SlugcatEyebrowRaise
 {
-    [BepInPlugin("forthbridge.vineboomdeath", "VineBoomDeath", "2.0.0")]
-    internal class VineBoomDeath : BaseUnityPlugin
+    [BepInPlugin("forthbridge.slugcateyebrowraise", "SlugcatEyebrowRaise", "2.0.0")]
+    internal class SlugcatEyebrowRaise : BaseUnityPlugin
     {
         public static new ManualLogSource Logger { get; private set; } = null!;
 
         public const string VERSION = "2.0.0";
-        public const string MOD_ID = "vineboomdeath";
+        public const string MOD_ID = "slugcateyebrowraise";
         public const string AUTHOR = "forthbridge";
 
         public void OnEnable()
