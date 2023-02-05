@@ -8,14 +8,14 @@ using BepInEx.Logging;
 
 namespace SlugcatEyebrowRaise
 {
-    [BepInPlugin("forthbridge.slugcateyebrowraise", "SlugcatEyebrowRaise", "2.0.0")]
+    [BepInPlugin(MOD_ID + AUTHOR, MOD_ID, VERSION)]
     internal class SlugcatEyebrowRaise : BaseUnityPlugin
     {
-        public static new ManualLogSource Logger { get; private set; } = null!;
-
-        public const string VERSION = "2.0.0";
+        public const string VERSION = "1.0.0";
         public const string MOD_ID = "slugcateyebrowraise";
         public const string AUTHOR = "forthbridge";
+
+        public static new ManualLogSource Logger { get; private set; } = null!;
 
         public void OnEnable()
         {
