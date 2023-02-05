@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
+using System.IO.Ports;
 using Menu.Remix.MixedUI;
 using UnityEngine;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace SlugcatEyebrowRaise
 {
@@ -13,9 +15,14 @@ namespace SlugcatEyebrowRaise
 
         #region Options
         public static Configurable<bool> vineBoomBassBoosted = instance.config.Bind("vineBoomBassBoosted", false, new ConfigurableInfo(
-            "When checked, makes the vine boom literally 10000000 times louder in the config file!" +
-            "\n(whether this is actually 10000000 times louder is up for debate)",
+            "When checked, makes the vine boom literally 200 times louder in the config file!" +
+            "\n(whether this is actually 200 times louder is up for debate)",
             null, "", "Vine Boom Bass Boosted?"));
+
+        public static Configurable<bool> playEveryFrame = instance.config.Bind("playEveryFrame", false, new ConfigurableInfo(
+            "NEVER ENABLE THIS OPTION AND HOLD THE BUTTON, CAN CAUSE EXTREME DAMAGE TO BOTH EARS AND YOUR SANITY" + 
+            "\nWhen checked, makes the vine boom sound play and stack every frame as long as the button is held down.",
+            null, "", "DO NOT ENABLE"));
         #endregion
 
         #region Parameters
@@ -71,6 +78,7 @@ namespace SlugcatEyebrowRaise
             AddBox();
 
             AddCheckBox(vineBoomBassBoosted, (string)vineBoomBassBoosted.info.Tags[0]);
+            AddCheckBox(playEveryFrame, (string)playEveryFrame.info.Tags[0]);
             DrawCheckBoxes(ref Tabs[tabIndex]);
 
             AddNewLine(15);

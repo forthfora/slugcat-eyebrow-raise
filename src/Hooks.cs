@@ -1,7 +1,6 @@
-﻿using HUD;
+﻿using IL.Menu;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
-using System;
 using UnityEngine;
 
 namespace SlugcatEyebrowRaise
@@ -41,6 +40,7 @@ namespace SlugcatEyebrowRaise
         }
 
         private static bool isEyebrowRaised = false;
+        private static bool wasEyebrowRaised = false;
 
         private static void Player_Update(On.Player.orig_Update orig, Player self, bool eu)
         {
@@ -54,18 +54,23 @@ namespace SlugcatEyebrowRaise
             else
             {
                 isEyebrowRaised = false;
+                wasEyebrowRaised = false;
             }
         }
         private static void PlayerGraphics_DrawSprites(On.PlayerGraphics.orig_DrawSprites orig, PlayerGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
         {
             orig(self, sLeaser, rCam, timeStacker, camPos);
 
-            if (!isEyebrowRaised) return;
+            if (!isEyebrowRaised || wasEyebrowRaised) return;
 
-            sLeaser.sprites[9].element = Futile.atlasManager.GetElementWithName("FaceER");
+            wasEyebrowRaised = !Options.playEveryFrame.Value;
+
+            sLeaser.sprites[9].element = Futile.atlasManager.GetElementWithName("default_crouching");
+            self.objectLooker.currentMostInteresting = null;
             self.LookAtNothing();
         }
 
+        #region Death Hooks
         private static void Player_Die(ILContext il)
         {
             var c = new ILCursor(il);
@@ -89,5 +94,6 @@ namespace SlugcatEyebrowRaise
                 c.Emit<Enums.Sounds>(OpCodes.Ldsfld, GetVineBoomStringID());
             }
         }
+        #endregion
     }
 }

@@ -18,7 +18,11 @@ namespace SlugcatEyebrowRaise
             foreach (string filePath in Directory.GetFiles(fullPath))
             {
                 byte[] fileData = File.ReadAllBytes(filePath);
-                Texture2D texture = new Texture2D(2, 2);
+                Texture2D texture = new Texture2D(2, 2, TextureFormat.ARGB32, false)
+                {
+                    anisoLevel = 1,
+                    filterMode = FilterMode.Point
+                };
                 texture.LoadImage(fileData);
                 Futile.atlasManager.LoadAtlasFromTexture(Path.GetFileNameWithoutExtension(filePath), texture, false);
             }
