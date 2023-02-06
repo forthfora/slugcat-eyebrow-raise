@@ -1,2 +1,2 @@
-[ADD]VineBoom : vineboom/vol=1.0
-[ADD]VineBoomLoud : vineboom/vol=100000000000000000000000000000.0
+[ADD]VineBoom : vineboom/vol=0.3
+[ADD]VineBoomLoud : vineboom/vol=100.0

@@ -24,16 +24,19 @@ namespace SlugcatEyebrowRaise
             "\nWhen checked, makes the vine boom sound play and stack every frame as long as the button is held down.",
             null, "", "DO NOT ENABLE"));
 
-        public static Configurable<KeyCode> player1Keybind = instance.config.Bind("player1Keybind", KeyCode.LeftAlt, new ConfigurableInfo(
+        public static Configurable<KeyCode> keyboardKeybind = instance.config.Bind("keyboardKeybind", KeyCode.LeftAlt, new ConfigurableInfo(
+            "Keybind to trigger the eyebrow raise for player 1.", null, "", "Keyboard Keybind"));
+
+        public static Configurable<KeyCode> player1Keybind = instance.config.Bind("player1Keybind", KeyCode.Joystick1Button4, new ConfigurableInfo(
             "Keybind to trigger the eyebrow raise for player 1.", null, "", "Player 1 Keybind"));
 
-        public static Configurable<KeyCode> player2Keybind = instance.config.Bind("player2Keybind", KeyCode.Joystick1Button4, new ConfigurableInfo(
+        public static Configurable<KeyCode> player2Keybind = instance.config.Bind("player2Keybind", KeyCode.Joystick2Button4, new ConfigurableInfo(
             "Keybind to trigger the eyebrow raise for player 2", null, "", "Player 2 Keybind"));
 
-        public static Configurable<KeyCode> player3Keybind = instance.config.Bind("player3Keybind", KeyCode.Joystick2Button4, new ConfigurableInfo(
+        public static Configurable<KeyCode> player3Keybind = instance.config.Bind("player3Keybind", KeyCode.Joystick3Button4, new ConfigurableInfo(
             "Keybind to trigger the eyebrow raise for player 3.", null, "", "Player 3 Keybind"));
 
-        public static Configurable<KeyCode> player4Keybind = instance.config.Bind("player4Keybind", KeyCode.Joystick3Button4, new ConfigurableInfo(
+        public static Configurable<KeyCode> player4Keybind = instance.config.Bind("player4Keybind", KeyCode.Joystick4Button4, new ConfigurableInfo(
             "Keybind to trigger the eyebrow raise for player 4.", null, "", "Player 4 Keybind"));
         #endregion
 

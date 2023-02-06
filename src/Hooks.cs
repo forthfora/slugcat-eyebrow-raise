@@ -21,8 +21,11 @@ namespace SlugcatEyebrowRaise
 
             On.Player.Update += Player_Update;
             On.PlayerGraphics.DrawSprites += PlayerGraphics_DrawSprites;
+
+            On.RoomCamera.DrawUpdate += RoomCamera_DrawUpdate;
         }
 
+        private static float cameraZoomAmount = 0.0f;
 
         private static void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
         {
@@ -57,30 +60,68 @@ namespace SlugcatEyebrowRaise
         private const int MAX_NUMBER_OF_PLAYERS = 4;
         private const int ANIMATION_FRAMERATE = 30;
         private const int FRAME_COUNT = 3;
+        private const float MAX_ZOOM = 0.3f;
+        private const float FRAME_DELTA_ZOOM = 0.01f;
 
         private readonly static bool[] isPlayerKeyPressed = new bool[MAX_NUMBER_OF_PLAYERS];
         private readonly static bool[] isPlayerEyebrowRaised = new bool[MAX_NUMBER_OF_PLAYERS];
         private readonly static int[] playerEyebrowRaiseLevel = new int[MAX_NUMBER_OF_PLAYERS];
 
+        private static bool isZoomedIn = false;
         private static float raiseTimer = 0.0f;
 
         private static void Player_Update(On.Player.orig_Update orig, Player self, bool eu)
         {
             orig(self, eu);
 
-            isPlayerKeyPressed[0] = Input.GetKey(Options.player1Keybind.Value);
-            isPlayerKeyPressed[1] = Input.GetKey(Options.player2Keybind.Value);
-            isPlayerKeyPressed[2] = Input.GetKey(Options.player3Keybind.Value);
-            isPlayerKeyPressed[3] = Input.GetKey(Options.player4Keybind.Value);
+            HandlePlayerInput(Options.keyboardKeybind.Value, 0);
 
-            for (int i = 0; i < MAX_NUMBER_OF_PLAYERS; i++)
+            HandlePlayerInput(Options.player1Keybind.Value, 0);
+            HandlePlayerInput(Options.player2Keybind.Value, 1);
+            HandlePlayerInput(Options.player3Keybind.Value, 2);
+            HandlePlayerInput(Options.player4Keybind.Value, 3);
+
+            if (isZoomedIn)
             {
-                if (!isPlayerKeyPressed[i])
+                if (cameraZoomAmount < MAX_ZOOM)
                 {
-                    isPlayerEyebrowRaised[i] = false;
+                    cameraZoomAmount += FRAME_DELTA_ZOOM;
+                }
+                else
+                {
+                    cameraZoomAmount = MAX_ZOOM;
+                }
+            }
+            else
+            {
+                if (cameraZoomAmount > 0.0f)
+                {
+                    cameraZoomAmount -= FRAME_DELTA_ZOOM;
+                }
+                else
+                {
+                    cameraZoomAmount = 0.0f;
                 }
             }
         }
+
+        private static bool HandlePlayerInput(KeyCode keyCode, int playerIndex)
+        {
+            if (Input.GetKey(keyCode))
+            {
+                isPlayerKeyPressed[playerIndex] = true;
+                isZoomedIn = true;
+            }
+            else
+            {
+                isPlayerKeyPressed[playerIndex] = false;
+                isPlayerEyebrowRaised[playerIndex] = false;
+                isZoomedIn = false;
+            }
+
+            return isPlayerKeyPressed[playerIndex];
+        }
+
         private static void PlayerGraphics_DrawSprites(On.PlayerGraphics.orig_DrawSprites orig, PlayerGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
         {
             orig(self, sLeaser, rCam, timeStacker, camPos);
@@ -127,14 +168,14 @@ namespace SlugcatEyebrowRaise
             SlugcatStats.Name name = self.player.SlugCatClass;
             string face = "default";
 
-            //if (name == MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Artificer)
-            //{
-            //    face = "artificer";
-            //}
-            //else if (name == MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Saint)
-            //{
-            //    face = "saint";
-            //}
+            if (name == MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Artificer)
+            {
+                face = "artificer";
+            }
+            else if (name == MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Saint)
+            {
+                face = "saint";
+            }
 
             if (self.blink > 0 && raiseLevel == FRAME_COUNT)
             {
@@ -186,6 +227,129 @@ namespace SlugcatEyebrowRaise
                 }
             });
         }
+
+        // Henpemaz's magic
+        #region Camera Zoom
+        private static void RoomCamera_DrawUpdate(On.RoomCamera.orig_DrawUpdate orig, RoomCamera self, float timeStacker, float timeSpeed)
+        {
+            float zoom = 1f;
+            bool zoomed = false;
+            Vector2 offset = Vector2.zero;
+            if (self.room != null && cameraZoomAmount > 0f)
+            {
+                //zoom = 1f;// self.room.roomSettings.GetEffectAmount(EnumExt_CameraZoomEffect.CameraZoom) * 10f;
+                zoom = cameraZoomAmount * 20f;
+                zoomed = true;
+                Creature creature = (self.followAbstractCreature == null) ? null : self.followAbstractCreature.realizedCreature;
+                if (creature != null)
+                {
+                    //Vector2 testPos = creature.bodyChunks[0].pos + creature.bodyChunks[0].vel + self.followCreatureInputForward * 2f;
+                    Vector2 value = Vector2.Lerp(creature.bodyChunks[0].lastPos, creature.bodyChunks[0].pos, timeStacker);
+                    if (creature.inShortcut)
+                    {
+                        Vector2? vector = self.room.game.shortcuts.OnScreenPositionOfInShortCutCreature(self.room, creature);
+                        if (vector != null)
+                        {
+                            //testPos = vector.Value;
+                            value = vector.Value;
+                        }
+                    }
+                    offset = new Vector2((float)self.cameraNumber * 6000f, 0f) + (value - (self.pos + self.sSize / 2f));
+                }
+
+            }
+            if (zoomed)
+            {
+                for (int i = 0; i < 11; i++) // 11 useful layers the rest if hud
+                {
+                    self.SpriteLayers[i].scale = 1f;
+                    self.SpriteLayers[i].SetPosition(Vector2.zero);
+                    self.SpriteLayers[i].ScaleAroundPointRelative(self.sSize / 2f, zoom, zoom);
+
+                    //self.SpriteLayers[i].SetPosition(-offset);
+                }
+                self.offset = offset;
+            }
+            else
+            {
+                // unzoom camera on effect slider to 0 or maybe if changeroom didnt call
+                for (int i = 0; i < 11; i++) // 11 useful layers the rest is hud
+                {
+                    self.SpriteLayers[i].scale = 1f;
+                    self.SpriteLayers[i].SetPosition(Vector2.zero);
+
+                    //self.SpriteLayers[i].SetPosition(-offset);
+                }
+                self.offset = new Vector2((float)self.cameraNumber * 6000f, 0f);
+            }
+
+            //self.levelGraphic.scale = zoom;
+            int theseed = 0;
+            if (zoomed)
+            {
+                // deterministic random shake
+                theseed = UnityEngine.Random.seed;
+                UnityEngine.Random.seed = theseed;
+            }
+            orig(self, timeStacker, timeSpeed);
+            if (zoomed)
+            {
+                // calculate stupid shake again
+                // an aternative to this would to spawn a spriteleaser and have it store its drawposition
+
+                UnityEngine.Random.seed = theseed;
+                // coppypasta I just need the same exact viewport
+                Vector2 vector = Vector2.Lerp(self.lastPos, self.pos, timeStacker);
+                if (self.microShake > 0f)
+                {
+                    vector += RWCustom.Custom.RNV() * 8f * self.microShake * UnityEngine.Random.value;
+                }
+                if (!self.voidSeaMode)
+                {
+                    vector.x = Mathf.Clamp(vector.x, self.CamPos(self.currentCameraPosition).x + self.hDisplace + 8f - 20f, self.CamPos(self.currentCameraPosition).x + self.hDisplace + 8f + 20f);
+                    vector.y = Mathf.Clamp(vector.y, self.CamPos(self.currentCameraPosition).y + 8f - 7f, self.CamPos(self.currentCameraPosition).y + 33f);
+                }
+                else
+                {
+                    vector.y = Mathf.Min(vector.y, -528f);
+                }
+                vector = new Vector2(Mathf.Floor(vector.x), Mathf.Floor(vector.y));
+                vector.x -= 0.02f;
+                vector.y -= 0.02f;
+
+                // Magic offsets and magic shader rectangles
+                // THIS CRAP BUGS OUT ON SCREEN TRANSITIONS AND i DON'T UNDESTAND WHYYYYYY
+                Vector2 magicOffset = self.CamPos(self.currentCameraPosition) - vector;
+                //Debug.LogError("magic offset is " + magicOffset);
+                //Vector4 center = new Vector4(
+                //	(-vector.x - 0.5f + self.levelGraphic.width / 2f + self.CamPos(self.currentCameraPosition).x) / self.sSize.x,
+                //	(-vector.y + 0.5f + self.levelGraphic.height / 2f + self.CamPos(self.currentCameraPosition).y) / self.sSize.y,
+                //	(-vector.x - 0.5f + self.levelGraphic.width / 2f + self.CamPos(self.currentCameraPosition).x) / self.sSize.x,
+                //	(-vector.y + 0.5f + self.levelGraphic.height / 2f + self.CamPos(self.currentCameraPosition).y) / self.sSize.y);
+                Vector4 center = new Vector4(
+                    (magicOffset.x + self.levelGraphic.width / 2f) / self.sSize.x,
+                    (magicOffset.y + 2f + self.levelGraphic.height / 2f) / self.sSize.y,
+                    (magicOffset.x + self.levelGraphic.width / 2f) / self.sSize.x,
+                    (magicOffset.y + 2f + self.levelGraphic.height / 2f) / self.sSize.y);
+                vector += self.offset;
+                Vector4 sprpos = new Vector4(
+                    (-vector.x + self.CamPos(self.currentCameraPosition).x) / self.sSize.x,
+                    (-vector.y + self.CamPos(self.currentCameraPosition).y) / self.sSize.y,
+                    (-vector.x + self.levelGraphic.width + self.CamPos(self.currentCameraPosition).x) / self.sSize.x,
+                    (-vector.y + self.levelGraphic.height + self.CamPos(self.currentCameraPosition).y) / self.sSize.y);
+
+                //sprpos -= new Vector4(17f / self.sSize.x, 18f / self.sSize.y, 17f / self.sSize.x, 18f / self.sSize.y) * (1f - 1f / zoom);
+                sprpos -= center;
+                sprpos *= zoom;
+                sprpos += center;
+                Shader.SetGlobalVector("_spriteRect", sprpos);
+                Vector2 zooming = (1f - 1f / zoom) * new Vector2(self.sSize.x / self.room.PixelWidth, self.sSize.y / self.room.PixelHeight);
+                Shader.SetGlobalVector("_camInRoomRect", new Vector4(vector.x / self.room.PixelWidth + zooming.x / 2f, vector.y / self.room.PixelHeight + zooming.y / 2f,
+                    self.sSize.x / self.room.PixelWidth - zooming.x, self.sSize.y / self.room.PixelHeight - zooming.y));
+                Shader.SetGlobalVector("_screenSize", self.sSize);
+            }
+        }
+        #endregion
 
         #region Death IL Hooks
         private static void Player_Die(ILContext il)
