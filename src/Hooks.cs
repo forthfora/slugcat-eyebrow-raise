@@ -4,6 +4,7 @@ using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using UnityEngine;
 
@@ -37,9 +38,6 @@ namespace SlugcatEyebrowRaise
 
             try
             {
-                //IL.PlayerGraphics.PlayerObjectLooker.LookAtPoint += PlayerObjectLooker_LookAtPoint;
-                //IL.PlayerGraphics.PlayerObjectLooker.LookAtObject += PlayerObjectLooker_LookAtObject;
-
                 IL.Player.Die += Player_Die;
                 IL.HUD.TextPrompt.Update += TextPrompt_Update;
 
@@ -58,65 +56,69 @@ namespace SlugcatEyebrowRaise
         }
 
         private const int MAX_NUMBER_OF_PLAYERS = 4;
-        private const int ANIMATION_FRAMERATE = 30;
+
+        private const int ANIMATION_FRAMERATE = 20;
         private const int FRAME_COUNT = 3;
-        private const float MAX_ZOOM = 0.3f;
-        private const float FRAME_DELTA_ZOOM = 0.01f;
+
+        private const float MAX_ZOOM = 0.1f;
+        private const float ZOOM_DURATION = 1.0f;
+
+        private const float EYEBROW_RAISE_MIN_DURATION = 2.0f;
+
+        private const float SHAKE_DURATION = 1.5f;
+        private const float SHAKE_INTENSITY_NORMAL = 0.15f;
+        private const float SHAKE_INTENSITY_LOUD = 1.0f;
 
         private readonly static bool[] isPlayerKeyPressed = new bool[MAX_NUMBER_OF_PLAYERS];
         private readonly static bool[] isPlayerEyebrowRaised = new bool[MAX_NUMBER_OF_PLAYERS];
         private readonly static int[] playerEyebrowRaiseLevel = new int[MAX_NUMBER_OF_PLAYERS];
+        private readonly static float[] playerEyebrowRaiseDurationTimer = new float[MAX_NUMBER_OF_PLAYERS];
 
-        private static bool isZoomedIn = false;
         private static float raiseTimer = 0.0f;
+        private static float shakeTimer = 0.0f;
+        private static float zoomTimer = 0.0f;
 
         private static void Player_Update(On.Player.orig_Update orig, Player self, bool eu)
         {
             orig(self, eu);
 
-            HandlePlayerInput(Options.keyboardKeybind.Value, 0);
-
-            HandlePlayerInput(Options.player1Keybind.Value, 0);
-            HandlePlayerInput(Options.player2Keybind.Value, 1);
-            HandlePlayerInput(Options.player3Keybind.Value, 2);
-            HandlePlayerInput(Options.player4Keybind.Value, 3);
-
-            if (isZoomedIn)
+            HandlePlayerInput(self, Options.player1Keybind.Value, 0);
+            HandlePlayerInput(self, Options.player2Keybind.Value, 1);
+            HandlePlayerInput(self, Options.player3Keybind.Value, 2);
+            HandlePlayerInput(self, Options.player4Keybind.Value, 3);
+            
+            if (zoomTimer < Time.time)
             {
-                if (cameraZoomAmount < MAX_ZOOM)
-                {
-                    cameraZoomAmount += FRAME_DELTA_ZOOM;
-                }
-                else
-                {
-                    cameraZoomAmount = MAX_ZOOM;
-                }
-            }
-            else
-            {
-                if (cameraZoomAmount > 0.0f)
-                {
-                    cameraZoomAmount -= FRAME_DELTA_ZOOM;
-                }
-                else
-                {
-                    cameraZoomAmount = 0.0f;
-                }
+                cameraZoomAmount = 0.0f;
             }
         }
 
-        private static bool HandlePlayerInput(KeyCode keyCode, int playerIndex)
+        private static bool HandlePlayerInput(Player player, KeyCode keyCode, int playerIndex)
         {
-            if (Input.GetKey(keyCode))
+            if (Input.GetKey(keyCode) || (playerIndex == 0 && Input.GetKey(Options.keyboardKeybind.Value)))
             {
+                if (!isPlayerKeyPressed[playerIndex])
+                {
+                    SlugcatEyebrowRaise.Logger.LogWarning($"{keyCode}: {playerIndex}");
+                    player.room.PlaySound(GetVineBoomSoundID(), player.mainBodyChunk);
+                    shakeTimer = Time.time + SHAKE_DURATION;
+                    playerEyebrowRaiseDurationTimer[playerIndex] = Time.time + EYEBROW_RAISE_MIN_DURATION;
+                    cameraZoomAmount = MAX_ZOOM;
+                    zoomTimer = Time.time + ZOOM_DURATION;
+                }
+
                 isPlayerKeyPressed[playerIndex] = true;
-                isZoomedIn = true;
+                isPlayerEyebrowRaised[playerIndex] = true;
+
             }
             else
             {
                 isPlayerKeyPressed[playerIndex] = false;
-                isPlayerEyebrowRaised[playerIndex] = false;
-                isZoomedIn = false;
+
+                if (playerEyebrowRaiseDurationTimer[playerIndex] < Time.time)
+                {
+                    isPlayerEyebrowRaised[playerIndex] = false;
+                }
             }
 
             return isPlayerKeyPressed[playerIndex];
@@ -133,7 +135,7 @@ namespace SlugcatEyebrowRaise
             {
                 raiseTimer = Time.time;
 
-                if (isPlayerKeyPressed[playerIndex])
+                if (isPlayerEyebrowRaised[playerIndex])
                 {
                     if (raiseLevel < FRAME_COUNT)
                     {
@@ -150,15 +152,6 @@ namespace SlugcatEyebrowRaise
 
             string? face = GetFace(self, raiseLevel);
             if (face != null) SetFaceSprite(sLeaser, face);
-
-            if (!isPlayerKeyPressed[playerIndex]) return;
-
-            self.LookAtNothing();
-
-            if (isPlayerEyebrowRaised[playerIndex]) return;
-
-            isPlayerEyebrowRaised[playerIndex] = !Options.playEveryFrame.Value;
-            self.player.room.PlaySound(GetVineBoomSoundID(), self.player.mainBodyChunk);
         }
 
         private static string? GetFace(PlayerGraphics self, int raiseLevel)
@@ -200,38 +193,15 @@ namespace SlugcatEyebrowRaise
             sLeaser.sprites[9].scaleX = 1;
         }
 
-        private static void PlayerObjectLooker_LookAtPoint(ILContext il)
-        {
-            var c = new ILCursor(il);
-
-            c.GotoNext(MoveType.Before);
-            c.EmitDelegate<Action<PlayerGraphics.PlayerObjectLooker>>(ob =>
-            {
-                if (isPlayerEyebrowRaised[ob.owner.player.playerState.playerNumber])
-                {
-                    c.Emit(OpCodes.Ret);
-                }
-            });
-        }
-
-        private static void PlayerObjectLooker_LookAtObject(ILContext il)
-        {
-            var c = new ILCursor(il);
-
-            c.GotoNext(MoveType.Before);
-            c.EmitDelegate<Action<PlayerGraphics.PlayerObjectLooker>>(ob =>
-            {
-                if (isPlayerEyebrowRaised[ob.owner.player.playerState.playerNumber])
-                {
-                    c.Emit(OpCodes.Ret);
-                }
-            });
-        }
-
         // Henpemaz's magic
         #region Camera Zoom
         private static void RoomCamera_DrawUpdate(On.RoomCamera.orig_DrawUpdate orig, RoomCamera self, float timeStacker, float timeSpeed)
         {
+            if (shakeTimer > Time.time)
+            {
+                self.screenShake = Options.vineBoomBassBoosted.Value ? SHAKE_INTENSITY_LOUD : SHAKE_INTENSITY_NORMAL;
+            }
+
             float zoom = 1f;
             bool zoomed = false;
             Vector2 offset = Vector2.zero;

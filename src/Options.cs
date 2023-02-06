@@ -90,16 +90,6 @@ namespace SlugcatEyebrowRaise
 
             AddTab(ref tabIndex, "Input");
 
-            Tabs[tabIndex].AddItems(
-                new OpLabel(new Vector2(102f, 0f), new Vector2(100f, 34f), "Player 1 Keybind")
-                {
-                    alignment = FLabelAlignment.Right,
-                    verticalAlignment = OpLabel.LabelVAlignment.Center,
-                    description = player1Keybind.info.description
-                },
-                new OpKeyBinder(player1Keybind, new Vector2(4f, 2f), new Vector2(146f, 30f), false)
-            );
-
             AddNewLine(15);
             DrawBox(ref Tabs[tabIndex]);
         }
