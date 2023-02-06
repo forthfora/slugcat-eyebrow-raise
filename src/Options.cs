@@ -6,7 +6,7 @@ using UnityEngine;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace SlugcatEyebrowRaise
-{
+{   
     // Based on the options script from SBCameraScroll by SchuhBaum
     // https://github.com/SchuhBaum/SBCameraScroll/blob/Rain-World-v1.9/SourceCode/MainModOptions.cs
     public class Options : OptionInterface
@@ -23,7 +23,20 @@ namespace SlugcatEyebrowRaise
             "NEVER ENABLE THIS OPTION AND HOLD THE BUTTON, CAN CAUSE EXTREME DAMAGE TO BOTH EARS AND YOUR SANITY" + 
             "\nWhen checked, makes the vine boom sound play and stack every frame as long as the button is held down.",
             null, "", "DO NOT ENABLE"));
+
+        public static Configurable<KeyCode> player1Keybind = instance.config.Bind("player1Keybind", KeyCode.LeftAlt, new ConfigurableInfo(
+            "Keybind to trigger the eyebrow raise for player 1.", null, "", "Player 1 Keybind"));
+
+        public static Configurable<KeyCode> player2Keybind = instance.config.Bind("player2Keybind", KeyCode.Joystick1Button4, new ConfigurableInfo(
+            "Keybind to trigger the eyebrow raise for player 2", null, "", "Player 2 Keybind"));
+
+        public static Configurable<KeyCode> player3Keybind = instance.config.Bind("player3Keybind", KeyCode.Joystick2Button4, new ConfigurableInfo(
+            "Keybind to trigger the eyebrow raise for player 3.", null, "", "Player 3 Keybind"));
+
+        public static Configurable<KeyCode> player4Keybind = instance.config.Bind("player4Keybind", KeyCode.Joystick3Button4, new ConfigurableInfo(
+            "Keybind to trigger the eyebrow raise for player 4.", null, "", "Player 4 Keybind"));
         #endregion
+
 
         #region Parameters
         private readonly float spacing = 20f;
@@ -55,15 +68,44 @@ namespace SlugcatEyebrowRaise
         private readonly List<OpLabel> textLabels = new();
         #endregion
 
+        private const int NUMBER_OF_TABS = 2;
+
         public override void Initialize()
         {
             base.Initialize();
-            Tabs = new OpTab[1];
+            Tabs = new OpTab[NUMBER_OF_TABS];
             int tabIndex = -1;
 
+            AddTab(ref tabIndex, "General");
+
+            AddCheckBox(vineBoomBassBoosted, (string)vineBoomBassBoosted.info.Tags[0]);
+            AddCheckBox(playEveryFrame, (string)playEveryFrame.info.Tags[0]);
+            DrawCheckBoxes(ref Tabs[tabIndex]);
+
+            AddNewLine(15);
+            DrawBox(ref Tabs[tabIndex]);
+
+            AddTab(ref tabIndex, "Input");
+
+            Tabs[tabIndex].AddItems(
+                new OpLabel(new Vector2(102f, 0f), new Vector2(100f, 34f), "Player 1 Keybind")
+                {
+                    alignment = FLabelAlignment.Right,
+                    verticalAlignment = OpLabel.LabelVAlignment.Center,
+                    description = player1Keybind.info.description
+                },
+                new OpKeyBinder(player1Keybind, new Vector2(4f, 2f), new Vector2(146f, 30f), false)
+            );
+
+            AddNewLine(15);
+            DrawBox(ref Tabs[tabIndex]);
+        }
+
+        private void AddTab(ref int tabIndex, string tabName)
+        {
             tabIndex++;
-            Tabs[tabIndex] = new OpTab(this, "General");
-                InitializeMarginAndPos();
+            Tabs[tabIndex] = new OpTab(this, tabName);
+            InitializeMarginAndPos();
 
             AddNewLine();
             AddTextLabel("Slugcat Eyebrow Raise", bigText: true);
@@ -76,13 +118,6 @@ namespace SlugcatEyebrowRaise
 
             AddNewLine();
             AddBox();
-
-            AddCheckBox(vineBoomBassBoosted, (string)vineBoomBassBoosted.info.Tags[0]);
-            AddCheckBox(playEveryFrame, (string)playEveryFrame.info.Tags[0]);
-            DrawCheckBoxes(ref Tabs[tabIndex]);
-
-            AddNewLine(15);
-            DrawBox(ref Tabs[tabIndex]);
         }
 
         #region UI Elements
