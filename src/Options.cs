@@ -14,10 +14,20 @@ namespace SlugcatEyebrowRaise
         public static Options instance = new Options();
 
         #region Options
-        public static Configurable<bool> vineBoomBassBoosted = instance.config.Bind("vineBoomBassBoosted", false, new ConfigurableInfo(
-            "When checked, makes the vine boom literally 200 times louder in the config file!" +
-            "\n(whether this is actually 200 times louder is up for debate)",
-            null, "", "Vine Boom Bass Boosted?"));
+
+        public static Configurable<bool> vineBoomExplosion = instance.config.Bind("vineBoomExplosion", true, new ConfigurableInfo(
+            "When checked, raising your eyebrow generates an extremely powerful artificer-like explosion around the player that knocks creatures away." +
+            "\nIndependent of the cosmetic effect.",
+            null, "", "Vine Boom Explosion?"));
+
+        public static Configurable<bool> vineBoomCosmetics = instance.config.Bind("vineBoomCosmetics", true, new ConfigurableInfo(
+            "When checked, enables a small cosmetic effect whenever you raise your eyebrow!",
+            null, "", "Vine Boom Cosmetics?"));
+
+
+        public static Configurable<bool> cameraShake = instance.config.Bind("cameraShake", true, new ConfigurableInfo(
+            "When checked, the camera shakes under the sheer weight of raising your eyebrow.",
+            null, "", "Camera Shake?"));
 
         public static Configurable<bool> zoomCamera = instance.config.Bind("zoomCamera", false, new ConfigurableInfo(
             "When checked, makes the camera zoom in on slugcat whenever they raise their eyebrow." +
@@ -25,9 +35,10 @@ namespace SlugcatEyebrowRaise
             null, "", "Zoom Camera?"));
 
 
-        public static Configurable<bool> vineBoomExplosion = instance.config.Bind("vineBoomExplosion", false, new ConfigurableInfo(
-            "When checked, generates an extremely powerful artificer-like explosion around the player that knocks creatures away.",
-            null, "", "Vine Boom Explosion?"));
+        public static Configurable<bool> vineBoomBassBoosted = instance.config.Bind("vineBoomBassBoosted", false, new ConfigurableInfo(
+            "When checked, makes the vine boom literally 200 times louder in the config file!" +
+            "\n(whether this is actually 200 times louder is up for debate)",
+            null, "", "Vine Boom Bass Boosted?"));
 
         public static Configurable<bool> playEveryFrame = instance.config.Bind("playEveryFrame", false, new ConfigurableInfo(
             "NEVER ENABLE THIS OPTION AND HOLD THE BUTTON, CAN CAUSE EXTREME DAMAGE TO BOTH EARS AND YOUR SANITY" + 
@@ -91,13 +102,18 @@ namespace SlugcatEyebrowRaise
 
             AddTab(ref tabIndex, "General");
 
-            AddCheckBox(vineBoomBassBoosted, (string)vineBoomBassBoosted.info.Tags[0]);
+            AddCheckBox(vineBoomExplosion, (string)vineBoomExplosion.info.Tags[0]);
+            AddCheckBox(vineBoomCosmetics, (string)vineBoomCosmetics.info.Tags[0]);
+            DrawCheckBoxes(ref Tabs[tabIndex]);
+
+            AddCheckBox(cameraShake, (string)cameraShake.info.Tags[0]);
             AddCheckBox(zoomCamera, (string)zoomCamera.info.Tags[0]);
             DrawCheckBoxes(ref Tabs[tabIndex]);
 
-            AddCheckBox(vineBoomExplosion, (string)vineBoomExplosion.info.Tags[0]);
+            AddCheckBox(vineBoomBassBoosted, (string)vineBoomBassBoosted.info.Tags[0]);
             AddCheckBox(playEveryFrame, (string)playEveryFrame.info.Tags[0]);
             DrawCheckBoxes(ref Tabs[tabIndex]);
+
 
             AddNewLine(14);
             DrawBox(ref Tabs[tabIndex]);

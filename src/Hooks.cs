@@ -58,13 +58,13 @@ namespace SlugcatEyebrowRaise
         private const int ANIMATION_FRAMERATE = 20;
         private const int FRAME_COUNT = 3;
 
-        private const float MAX_ZOOM = 0.05f;
+        private const float MAX_ZOOM = 0.15f;
         private const float ZOOM_DURATION = 1.0f;
 
         private const float EYEBROW_RAISE_MIN_DURATION = 2.0f;
 
         private const float SHAKE_DURATION = 1.5f;
-        private const float SHAKE_INTENSITY_NORMAL = 0.25f;
+        private const float SHAKE_INTENSITY_NORMAL = 0.15f;
         private const float SHAKE_INTENSITY_LOUD = 0.5f;
 
         private readonly static bool[] isPlayerKeyPressed = new bool[MAX_NUMBER_OF_PLAYERS];
@@ -98,10 +98,13 @@ namespace SlugcatEyebrowRaise
                 if (!isPlayerKeyPressed[playerIndex] || Options.playEveryFrame.Value)
                 {
                     player.room.PlaySound(GetVineBoomSoundID(), player.mainBodyChunk);
-                    shakeTimer = Time.time + SHAKE_DURATION;
-                    playerEyebrowRaiseDurationTimer[playerIndex] = Time.time + EYEBROW_RAISE_MIN_DURATION;
+                    EyebrowRaiseExplosion(player);
 
-                    EyebrowRaiseParry(player);
+                    if (Options.cameraShake.Value)
+                    {
+                        shakeTimer = Time.time + SHAKE_DURATION;
+                        playerEyebrowRaiseDurationTimer[playerIndex] = Time.time + EYEBROW_RAISE_MIN_DURATION;
+                    }
 
                     if (Options.zoomCamera.Value)
                     {
@@ -127,17 +130,22 @@ namespace SlugcatEyebrowRaise
             return isPlayerKeyPressed[playerIndex];
         }
 
-        private static void EyebrowRaiseParry(Player player)
+        private static void EyebrowRaiseExplosion(Player player)
         {
             Vector2 pos2 = player.firstChunk.pos;
 
-            player.room.AddObject(new Explosion.ExplosionLight(pos2, 1000.0f, 0.5f, 100, Color.white));
-
-            for (int l = 0; l < 10; l++)
+            if (Options.vineBoomCosmetics.Value)
             {
-                Vector2 a2 = Custom.RNV();
-                player.room.AddObject(new Spark(pos2 + a2 * Random.value * 40f, a2 * Mathf.Lerp(4f, 30f, Random.value), Color.white, null, 3, 6));
+                player.room.AddObject(new Explosion.ExplosionLight(pos2, 100.0f, 0.2f, 16, Color.white));
+
+                for (int l = 0; l < 10; l++)
+                {
+                    Vector2 a2 = Custom.RNV();
+                    player.room.AddObject(new Spark(pos2 + a2 * Random.value * 40f, a2 * Mathf.Lerp(4f, 30f, Random.value), Color.white, null, 3, 6));
+                }
             }
+
+            if (!Options.vineBoomExplosion.Value) return;
 
             player.room.AddObject(new ShockWave(pos2, 4000.0f, 100000.0f, 20, false));
 
