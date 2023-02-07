@@ -35,10 +35,11 @@ namespace SlugcatEyebrowRaise
             null, "", "Zoom Camera?"));
 
 
-        public static Configurable<bool> vineBoomBassBoosted = instance.config.Bind("vineBoomBassBoosted", false, new ConfigurableInfo(
-            "When checked, makes the vine boom literally 200 times louder in the config file!" +
-            "\n(whether this is actually 200 times louder is up for debate)",
-            null, "", "Vine Boom Bass Boosted?"));
+        public static Configurable<bool> vineBoomLoud = instance.config.Bind("vineBoomLoud", false, new ConfigurableInfo(
+            "When checked, makes the vine boom literally 1000 times louder in the config file!" +
+            "\nWARNING: EXTREMELY LOUD, I AM NOT RESPONSIBLE FOR ANY HEARING LOSS INCURRED",
+            null, "", "Vine Boom Louder? " +
+            "\n(MUCH LOUDER)"));
 
         public static Configurable<bool> playEveryFrame = instance.config.Bind("playEveryFrame", false, new ConfigurableInfo(
             "NEVER ENABLE THIS OPTION AND HOLD THE BUTTON, CAN CAUSE EXTREME DAMAGE TO BOTH EARS AND YOUR SANITY" + 
@@ -110,17 +111,67 @@ namespace SlugcatEyebrowRaise
             AddCheckBox(zoomCamera, (string)zoomCamera.info.Tags[0]);
             DrawCheckBoxes(ref Tabs[tabIndex]);
 
-            AddCheckBox(vineBoomBassBoosted, (string)vineBoomBassBoosted.info.Tags[0]);
+            AddCheckBox(vineBoomLoud, (string)vineBoomLoud.info.Tags[0]);
             AddCheckBox(playEveryFrame, (string)playEveryFrame.info.Tags[0]);
             DrawCheckBoxes(ref Tabs[tabIndex]);
 
 
-            AddNewLine(14);
+            AddNewLine(11);
             DrawBox(ref Tabs[tabIndex]);
 
             AddTab(ref tabIndex, "Input");
 
-            AddNewLine(15);
+            Tabs[tabIndex].AddItems(
+                new OpLabel(new Vector2(40f, 450f), new Vector2(100f, 34f), "Keyboard")
+                {
+                    alignment = FLabelAlignment.Right,
+                    verticalAlignment = OpLabel.LabelVAlignment.Center,
+                    description = keyboardKeybind.info.description
+                },
+                new OpKeyBinder(keyboardKeybind, new Vector2(160f, 452f), new Vector2(146f, 30f), false)
+                );
+
+            Tabs[tabIndex].AddItems(
+                new OpLabel(new Vector2(40f, 350f), new Vector2(100f, 34f), "Player 1")
+                {
+                    alignment = FLabelAlignment.Right,
+                    verticalAlignment = OpLabel.LabelVAlignment.Center,
+                    description = player1Keybind.info.description
+                },
+                new OpKeyBinder(player1Keybind, new Vector2(160f, 352f), new Vector2(146f, 30f), false)
+                );
+
+            Tabs[tabIndex].AddItems(
+                new OpLabel(new Vector2(40f, 250f), new Vector2(100f, 34f), "Player 2")
+                {
+                    alignment = FLabelAlignment.Right,
+                    verticalAlignment = OpLabel.LabelVAlignment.Center,
+                    description = player2Keybind.info.description
+                },
+                new OpKeyBinder(player2Keybind, new Vector2(160f, 252f), new Vector2(146f, 30f), false)
+                );
+
+            Tabs[tabIndex].AddItems(
+                new OpLabel(new Vector2(40f, 150f), new Vector2(100f, 34f), "Player 3")
+                {
+                    alignment = FLabelAlignment.Right,
+                    verticalAlignment = OpLabel.LabelVAlignment.Center,
+                    description = player3Keybind.info.description
+                },
+                new OpKeyBinder(player3Keybind, new Vector2(160f, 152f), new Vector2(146f, 30f), false)
+                );
+
+            Tabs[tabIndex].AddItems(
+                new OpLabel(new Vector2(40f, 50f), new Vector2(100f, 34f), "Player 4")
+                {
+                    alignment = FLabelAlignment.Right,
+                    verticalAlignment = OpLabel.LabelVAlignment.Center,
+                    description = player4Keybind.info.description
+                },
+                new OpKeyBinder(player4Keybind, new Vector2(160f, 52f), new Vector2(146f, 30f), false)
+                );
+
+            AddNewLine(22);
             DrawBox(ref Tabs[tabIndex]);
         }
 

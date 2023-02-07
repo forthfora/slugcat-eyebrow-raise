@@ -3,6 +3,7 @@ using MonoMod.Cil;
 using RWCustom;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -10,8 +11,8 @@ namespace SlugcatEyebrowRaise
 {
     internal static class Hooks
     {
-        private static SoundID? GetVineBoomSoundID() => Options.vineBoomBassBoosted.Value ? Enums.Sounds.VineBoomLoud : Enums.Sounds.VineBoom;
-        private static string GetVineBoomStringID() => Options.vineBoomBassBoosted.Value ? "VineBoomLoud" : "VineBoom";
+        private static SoundID? GetVineBoomSoundID() => Options.vineBoomLoud.Value ? Enums.Sounds.VineBoomLoud : Enums.Sounds.VineBoom;
+        private static string GetVineBoomStringID() => Options.vineBoomLoud.Value ? "VineBoomLoud" : "VineBoom";
 
         public static void ApplyHooks()
         {
@@ -24,7 +25,6 @@ namespace SlugcatEyebrowRaise
             On.RoomCamera.DrawUpdate += RoomCamera_DrawUpdate;
         }
 
-        private static float cameraZoomAmount = 0.0f;
 
         private static void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
         {
@@ -61,18 +61,19 @@ namespace SlugcatEyebrowRaise
         private const float MAX_ZOOM = 0.15f;
         private const float ZOOM_DURATION = 1.0f;
 
-        private const float EYEBROW_RAISE_MIN_DURATION = 2.0f;
+        private const float EYEBROW_RAISE_MIN_DURATION = 2.5f;
 
         private const float SHAKE_DURATION = 1.5f;
-        private const float SHAKE_INTENSITY_NORMAL = 0.15f;
-        private const float SHAKE_INTENSITY_LOUD = 0.5f;
+        private const float SHAKE_INTENSITY_NORMAL = 0.25f;
+        private const float SHAKE_INTENSITY_LOUD = 1.0f;
 
         private readonly static bool[] isPlayerKeyPressed = new bool[MAX_NUMBER_OF_PLAYERS];
         private readonly static bool[] isPlayerEyebrowRaised = new bool[MAX_NUMBER_OF_PLAYERS];
         private readonly static int[] playerEyebrowRaiseLevel = new int[MAX_NUMBER_OF_PLAYERS];
         private readonly static float[] playerEyebrowRaiseDurationTimer = new float[MAX_NUMBER_OF_PLAYERS];
+        private readonly static float[] raiseTimers = new float[MAX_NUMBER_OF_PLAYERS];
 
-        private static float raiseTimer = 0.0f;
+        private static float cameraZoomAmount = 0.0f;
         private static float shakeTimer = 0.0f;
         private static float zoomTimer = 0.0f;
 
@@ -84,15 +85,18 @@ namespace SlugcatEyebrowRaise
             HandlePlayerInput(self, Options.player2Keybind.Value, 1);
             HandlePlayerInput(self, Options.player3Keybind.Value, 2);
             HandlePlayerInput(self, Options.player4Keybind.Value, 3);
-            
+
             if (zoomTimer < Time.time)
             {
                 cameraZoomAmount = 0.0f;
             }
         }
 
-        private static bool HandlePlayerInput(Player player, KeyCode keyCode, int playerIndex)
+        private static void HandlePlayerInput(Player player, KeyCode keyCode, int targetPlayerIndex)
         {
+            int playerIndex = player.playerState.playerNumber;
+            if (playerIndex != targetPlayerIndex) return;
+
             if (Input.GetKey(keyCode) || (playerIndex == 0 && Input.GetKey(Options.keyboardKeybind.Value)))
             {
                 if (!isPlayerKeyPressed[playerIndex] || Options.playEveryFrame.Value)
@@ -126,8 +130,6 @@ namespace SlugcatEyebrowRaise
                     isPlayerEyebrowRaised[playerIndex] = false;
                 }
             }
-
-            return isPlayerKeyPressed[playerIndex];
         }
 
         private static void EyebrowRaiseExplosion(Player player)
@@ -137,6 +139,7 @@ namespace SlugcatEyebrowRaise
             if (Options.vineBoomCosmetics.Value)
             {
                 player.room.AddObject(new Explosion.ExplosionLight(pos2, 100.0f, 0.2f, 16, Color.white));
+                player.room.AddObject(new ShockWave(pos2, 500f, 0.05f, 2, false));
 
                 for (int l = 0; l < 10; l++)
                 {
@@ -146,8 +149,6 @@ namespace SlugcatEyebrowRaise
             }
 
             if (!Options.vineBoomExplosion.Value) return;
-
-            player.room.AddObject(new ShockWave(pos2, 4000.0f, 100000.0f, 20, false));
 
             List<Weapon> list = new List<Weapon>();
             for (int m = 0; m < player.room.physicalObjects.Length; m++)
@@ -196,7 +197,7 @@ namespace SlugcatEyebrowRaise
             for (int num6 = 0; num6 < list.Count; num6++)
             {
                 list[num6].ChangeMode(Weapon.Mode.Free);
-                list[num6].firstChunk.vel = Custom.DegToVec(Custom.AimFromOneVectorToAnother(pos2, list[num6].firstChunk.pos)) * 20f;
+                list[num6].firstChunk.vel = Custom.DegToVec(Custom.AimFromOneVectorToAnother(pos2, list[num6].firstChunk.pos)) * 1000.0f;
                 list[num6].SetRandomSpin();
             }
 
@@ -209,9 +210,9 @@ namespace SlugcatEyebrowRaise
             int playerIndex = self.player.playerState.playerNumber;
             int raiseLevel = playerEyebrowRaiseLevel[playerIndex];
 
-            if (Time.time - raiseTimer > 1.0f / ANIMATION_FRAMERATE)
+            if (Time.time - raiseTimers[playerIndex] > 1.0f / ANIMATION_FRAMERATE)
             {
-                raiseTimer = Time.time;
+                raiseTimers[playerIndex] = Time.time;
 
                 if (isPlayerEyebrowRaised[playerIndex])
                 {
@@ -277,7 +278,7 @@ namespace SlugcatEyebrowRaise
         {
             if (shakeTimer > Time.time)
             {
-                self.screenShake = Options.vineBoomBassBoosted.Value ? SHAKE_INTENSITY_LOUD : SHAKE_INTENSITY_NORMAL;
+                self.screenShake = Options.vineBoomLoud.Value ? SHAKE_INTENSITY_LOUD : SHAKE_INTENSITY_NORMAL;
             }
 
             float zoom = 1f;
