@@ -19,6 +19,16 @@ namespace SlugcatEyebrowRaise
             "\n(whether this is actually 200 times louder is up for debate)",
             null, "", "Vine Boom Bass Boosted?"));
 
+        public static Configurable<bool> zoomCamera = instance.config.Bind("zoomCamera", false, new ConfigurableInfo(
+            "When checked, makes the camera zoom in on slugcat whenever they raise their eyebrow." +
+            "\n(does not work well for jolly coop, will always focus on the first slugcat to enter the room on screen)",
+            null, "", "Zoom Camera?"));
+
+
+        public static Configurable<bool> vineBoomExplosion = instance.config.Bind("vineBoomExplosion", false, new ConfigurableInfo(
+            "When checked, generates an extremely powerful artificer-like explosion around the player that knocks creatures away.",
+            null, "", "Vine Boom Explosion?"));
+
         public static Configurable<bool> playEveryFrame = instance.config.Bind("playEveryFrame", false, new ConfigurableInfo(
             "NEVER ENABLE THIS OPTION AND HOLD THE BUTTON, CAN CAUSE EXTREME DAMAGE TO BOTH EARS AND YOUR SANITY" + 
             "\nWhen checked, makes the vine boom sound play and stack every frame as long as the button is held down.",
@@ -82,10 +92,14 @@ namespace SlugcatEyebrowRaise
             AddTab(ref tabIndex, "General");
 
             AddCheckBox(vineBoomBassBoosted, (string)vineBoomBassBoosted.info.Tags[0]);
+            AddCheckBox(zoomCamera, (string)zoomCamera.info.Tags[0]);
+            DrawCheckBoxes(ref Tabs[tabIndex]);
+
+            AddCheckBox(vineBoomExplosion, (string)vineBoomExplosion.info.Tags[0]);
             AddCheckBox(playEveryFrame, (string)playEveryFrame.info.Tags[0]);
             DrawCheckBoxes(ref Tabs[tabIndex]);
 
-            AddNewLine(15);
+            AddNewLine(14);
             DrawBox(ref Tabs[tabIndex]);
 
             AddTab(ref tabIndex, "Input");

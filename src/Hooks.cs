@@ -1,12 +1,10 @@
-﻿using IL.Menu;
-using IL.MoreSlugcats;
-using Mono.Cecil.Cil;
+﻿using Mono.Cecil.Cil;
 using MonoMod.Cil;
+using RWCustom;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace SlugcatEyebrowRaise
 {
@@ -60,14 +58,14 @@ namespace SlugcatEyebrowRaise
         private const int ANIMATION_FRAMERATE = 20;
         private const int FRAME_COUNT = 3;
 
-        private const float MAX_ZOOM = 0.1f;
+        private const float MAX_ZOOM = 0.05f;
         private const float ZOOM_DURATION = 1.0f;
 
         private const float EYEBROW_RAISE_MIN_DURATION = 2.0f;
 
         private const float SHAKE_DURATION = 1.5f;
-        private const float SHAKE_INTENSITY_NORMAL = 0.15f;
-        private const float SHAKE_INTENSITY_LOUD = 1.0f;
+        private const float SHAKE_INTENSITY_NORMAL = 0.25f;
+        private const float SHAKE_INTENSITY_LOUD = 0.5f;
 
         private readonly static bool[] isPlayerKeyPressed = new bool[MAX_NUMBER_OF_PLAYERS];
         private readonly static bool[] isPlayerEyebrowRaised = new bool[MAX_NUMBER_OF_PLAYERS];
@@ -97,14 +95,19 @@ namespace SlugcatEyebrowRaise
         {
             if (Input.GetKey(keyCode) || (playerIndex == 0 && Input.GetKey(Options.keyboardKeybind.Value)))
             {
-                if (!isPlayerKeyPressed[playerIndex])
+                if (!isPlayerKeyPressed[playerIndex] || Options.playEveryFrame.Value)
                 {
-                    SlugcatEyebrowRaise.Logger.LogWarning($"{keyCode}: {playerIndex}");
                     player.room.PlaySound(GetVineBoomSoundID(), player.mainBodyChunk);
                     shakeTimer = Time.time + SHAKE_DURATION;
                     playerEyebrowRaiseDurationTimer[playerIndex] = Time.time + EYEBROW_RAISE_MIN_DURATION;
-                    cameraZoomAmount = MAX_ZOOM;
-                    zoomTimer = Time.time + ZOOM_DURATION;
+
+                    EyebrowRaiseParry(player);
+
+                    if (Options.zoomCamera.Value)
+                    {
+                        cameraZoomAmount = MAX_ZOOM;
+                        zoomTimer = Time.time + ZOOM_DURATION;
+                    }
                 }
 
                 isPlayerKeyPressed[playerIndex] = true;
@@ -122,6 +125,73 @@ namespace SlugcatEyebrowRaise
             }
 
             return isPlayerKeyPressed[playerIndex];
+        }
+
+        private static void EyebrowRaiseParry(Player player)
+        {
+            Vector2 pos2 = player.firstChunk.pos;
+
+            player.room.AddObject(new Explosion.ExplosionLight(pos2, 1000.0f, 0.5f, 100, Color.white));
+
+            for (int l = 0; l < 10; l++)
+            {
+                Vector2 a2 = Custom.RNV();
+                player.room.AddObject(new Spark(pos2 + a2 * Random.value * 40f, a2 * Mathf.Lerp(4f, 30f, Random.value), Color.white, null, 3, 6));
+            }
+
+            player.room.AddObject(new ShockWave(pos2, 4000.0f, 100000.0f, 20, false));
+
+            List<Weapon> list = new List<Weapon>();
+            for (int m = 0; m < player.room.physicalObjects.Length; m++)
+            {
+                for (int n = 0; n < player.room.physicalObjects[m].Count; n++)
+                {
+                    if (player.room.physicalObjects[m][n] is Weapon)
+                    {
+                        Weapon weapon = player.room.physicalObjects[m][n] as Weapon;
+                        if (weapon.mode == Weapon.Mode.Thrown && Custom.Dist(pos2, weapon.firstChunk.pos) < 300f)
+                        {
+                            list.Add(weapon);
+                        }
+                    }
+                    if (player.room.physicalObjects[m][n] is Creature && player.room.physicalObjects[m][n] != player)
+                    {
+                        Creature creature = player.room.physicalObjects[m][n] as Creature;
+                        if (Custom.Dist(pos2, creature.firstChunk.pos) < 200f && (Custom.Dist(pos2, creature.firstChunk.pos) < 60f || player.room.VisualContact(player.abstractCreature.pos, creature.abstractCreature.pos)))
+                        {
+                            player.room.socialEventRecognizer.WeaponAttack(null, player, creature, true);
+                            creature.SetKillTag(player.abstractCreature);
+                            if (creature is Scavenger)
+                            {
+                                (creature as Scavenger).HeavyStun(80);
+                            }
+                            else
+                            {
+                                creature.Stun(80);
+                            }
+                            creature.firstChunk.vel = Custom.DegToVec(Custom.AimFromOneVectorToAnother(pos2, creature.firstChunk.pos)) * 30f;
+                            if (creature is TentaclePlant)
+                            {
+                                for (int num5 = 0; num5 < creature.grasps.Length; num5++)
+                                {
+                                    creature.ReleaseGrasp(num5);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (list.Count > 0 && player.room.game.IsArenaSession)
+            {
+                player.room.game.GetArenaGameSession.arenaSitting.players[0].parries++;
+            }
+            for (int num6 = 0; num6 < list.Count; num6++)
+            {
+                list[num6].ChangeMode(Weapon.Mode.Free);
+                list[num6].firstChunk.vel = Custom.DegToVec(Custom.AimFromOneVectorToAnother(pos2, list[num6].firstChunk.pos)) * 20f;
+                list[num6].SetRandomSpin();
+            }
+
         }
 
         private static void PlayerGraphics_DrawSprites(On.PlayerGraphics.orig_DrawSprites orig, PlayerGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
