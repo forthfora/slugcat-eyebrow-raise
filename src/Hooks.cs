@@ -117,7 +117,7 @@ namespace SlugcatEyebrowRaise
                         playerEyebrowRaiseDurationTimer[playerIndex] = Time.time + EYEBROW_RAISE_MIN_DURATION;
                     }
 
-                    if (Options.zoomCamera.Value)
+                    if (Options.zoomCamera.Value && player.room.game.Players.Count == 1)
                     {
                         cameraZoomAmount = MAX_ZOOM;
                         zoomTimer = Time.time + ZOOM_DURATION;
@@ -181,11 +181,16 @@ namespace SlugcatEyebrowRaise
                             {
                                 (creature as Scavenger).HeavyStun(80);
                             }
-                            else
+                            else if (creature is not Player || Options.eyebrowRaiseFriendlyFire.Value)
                             {
                                 creature.Stun(80);
                             }
-                            creature.firstChunk.vel = Custom.DegToVec(Custom.AimFromOneVectorToAnother(pos2, creature.firstChunk.pos)) * 30f;
+
+                            if (creature is not Player || Options.eyebrowRaiseFriendlyFire.Value)
+                            {
+                                creature.firstChunk.vel = Custom.DegToVec(Custom.AimFromOneVectorToAnother(pos2, creature.firstChunk.pos)) * Options.eyebrowRaisePower.Value;
+                            }
+
                             if (creature is TentaclePlant)
                             {
                                 for (int num5 = 0; num5 < creature.grasps.Length; num5++)
@@ -204,7 +209,7 @@ namespace SlugcatEyebrowRaise
             for (int num6 = 0; num6 < list.Count; num6++)
             {
                 list[num6].ChangeMode(Weapon.Mode.Free);
-                list[num6].firstChunk.vel = Custom.DegToVec(Custom.AimFromOneVectorToAnother(pos2, list[num6].firstChunk.pos)) * 1000.0f;
+                list[num6].firstChunk.vel = Custom.DegToVec(Custom.AimFromOneVectorToAnother(pos2, list[num6].firstChunk.pos)) * 200.0f;
                 list[num6].SetRandomSpin();
             }
 
@@ -243,11 +248,15 @@ namespace SlugcatEyebrowRaise
         private static string? GetFace(PlayerGraphics self, int raiseLevel)
         {
             if (raiseLevel == 0) return null;
-
+            
             SlugcatStats.Name name = self.player.SlugCatClass;
             string face = "default";
 
-            if (name == MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Artificer)
+            if (self.player.dead)
+            {
+                face = "dead";
+            }
+            else if (name == MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Artificer)
             {
                 face = "artificer";
             }
@@ -256,7 +265,7 @@ namespace SlugcatEyebrowRaise
                 face = "saint";
             }
 
-            if (self.blink > 0 && raiseLevel == Options.animationFrameCount.Value)
+            if (self.blink > 0 && raiseLevel == Options.animationFrameCount.Value && !self.player.dead)
             {
                 face += "_blink";
             }

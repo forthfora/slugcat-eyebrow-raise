@@ -1,2 +1,9 @@
+[MERGE]
+UI_Multiplayer_Player_Dead_A : vineboom/vol=0.2
+UI_Multiplayer_Player_Dead_B : vineboom/vol=0.2
+MENU_Continue_Game : vineboom/vol=0.1
+MENU_Start_New_Game : vineboom/vol=0.1
+[ENDMERGE]
+
 [ADD]VineBoom : vineboom/vol=0.1
 [ADD]VineBoomLoud : vineboom/vol=100.0

@@ -27,25 +27,30 @@ namespace SlugcatEyebrowRaise
 
 
         public static Configurable<bool> cameraShake = instance.config.Bind("cameraShake", true, new ConfigurableInfo(
-            "When checked, the camera shakes under the sheer weight of raising your eyebrow.",
+            "When checked, the camera shakes under the sheer power of raising one eyebrow!",
             null, "", "Camera Shake?"));
 
         public static Configurable<bool> zoomCamera = instance.config.Bind("zoomCamera", true, new ConfigurableInfo(
             "When checked, makes the camera zoom in on slugcat whenever they raise their eyebrow." +
-            "\n(does not work well for jolly coop, will always focus on the first slugcat to enter the room on screen)",
+            "\n(disabled for co-op modes as the camera cannot decide which player to zoom in on)",
             null, "", "Zoom Camera?"));
 
 
         public static Configurable<bool> vineBoomLoud = instance.config.Bind("vineBoomLoud", false, new ConfigurableInfo(
             "When checked, makes the vine boom literally 1000 times louder in the config file!" +
-            "\nWARNING: EXTREMELY LOUD, I AM NOT RESPONSIBLE FOR ANY HEARING LOSS INCURRED",
+            "\nWARNING: EXTREMELY LOUD",
             null, "", "Vine Boom Louder? " +
             "\n(MUCH LOUDER)"));
 
         public static Configurable<bool> playEveryFrame = instance.config.Bind("playEveryFrame", false, new ConfigurableInfo(
-            "NEVER ENABLE THIS OPTION AND HOLD THE BUTTON, CAN CAUSE EXTREME DAMAGE TO BOTH EARS AND YOUR SANITY" + 
+            "ESPECIALLY DO NOT ENABLE BOTH THIS AND 'Vine Boom Louder?' AT THE SAME TIME" + 
             "\nWhen checked, makes the vine boom sound play and stack every frame as long as the button is held down.",
-            null, "", "DO NOT ENABLE"));
+            null, "", "DO NOT ENABLE AND HOLD" +
+            "\nTHE EYEBROW RAISE BUTTON"));
+
+        public static Configurable<bool> eyebrowRaiseFriendlyFire = instance.config.Bind("eyebrowRaiseFriendlyFire", true, new ConfigurableInfo(
+            "When checked, the eyebrow raise explosion will affect other players (if the explosion is enabled of course!)",
+            null, "", "Eyebrow Raise Friendly Fire?"));
 
         public static Configurable<KeyCode> keyboardKeybind = instance.config.Bind("keyboardKeybind", KeyCode.LeftAlt, new ConfigurableInfo(
             "Keybind to trigger the eyebrow raise for player 1.", null, "", "Keyboard Keybind"));
@@ -61,6 +66,10 @@ namespace SlugcatEyebrowRaise
 
         public static Configurable<KeyCode> player4Keybind = instance.config.Bind("player4Keybind", KeyCode.Joystick4Button4, new ConfigurableInfo(
             "Keybind to trigger the eyebrow raise for player 4.", null, "", "Player 4 Keybind"));
+
+        public static Configurable<int> eyebrowRaisePower = instance.config.Bind("eyebrowRaisePower", 100, new ConfigurableInfo(
+            "How powerful is the knockback effect of the eyebrow raise? (30 is equivalent to artificer's parry)",
+            new ConfigAcceptableRange<int>(1, 1000), "", "Eyebrow Raise Power"));
 
         public static Configurable<int> animationFrameRate = instance.config.Bind("animationFrameRate", 20, new ConfigurableInfo(
             "The frame rate of the eyebrow raise animation.",
@@ -122,12 +131,21 @@ namespace SlugcatEyebrowRaise
             AddCheckBox(zoomCamera, (string)zoomCamera.info.Tags[0]);
             DrawCheckBoxes(ref Tabs[tabIndex]);
 
+            AddCheckBox(eyebrowRaiseFriendlyFire, (string)eyebrowRaiseFriendlyFire.info.Tags[0]);
+            DrawCheckBoxes(ref Tabs[tabIndex]);
+
+            AddNewLine(2);
+
+            AddSlider(eyebrowRaisePower, (string)eyebrowRaisePower.info.Tags[0], "1", "1000");
+            DrawSliders(ref Tabs[tabIndex]);
+
+            AddNewLine(3);
+
             AddCheckBox(vineBoomLoud, (string)vineBoomLoud.info.Tags[0]);
             AddCheckBox(playEveryFrame, (string)playEveryFrame.info.Tags[0]);
             DrawCheckBoxes(ref Tabs[tabIndex]);
 
-
-            AddNewLine(12);
+            AddNewLine(1);
             DrawBox(ref Tabs[tabIndex]);
 
             AddTab(ref tabIndex, "Input");
@@ -194,16 +212,15 @@ namespace SlugcatEyebrowRaise
             {
                 colorEdge = new UnityEngine.Color(1f, 1f, 1f, 1f),
                 colorFill = new UnityEngine.Color(0.0f, 0.0f, 0.0f, 0.5f),
-                description = "Opens the sprites directory." +
-                "\nYou can add custom face sprites here!"
+                description = "You can replace the PNGs in this folder with your own custom face sprites!"
             };
             openSpritesDirectoryButton.OnClick += openSpritesDirectoryButton_OnClick;
             Tabs[tabIndex].AddItems(openSpritesDirectoryButton);
 
             AddNewLine();
 
-            AddSlider(animationFrameRate, (string)animationFrameRate.info.Tags[0]);
-            AddSlider(animationFrameCount, (string)animationFrameCount.info.Tags[0]);
+            AddSlider(animationFrameRate, (string)animationFrameRate.info.Tags[0], "1", "60");
+            AddSlider(animationFrameCount, (string)animationFrameCount.info.Tags[0], "1", "10");
             DrawSliders(ref Tabs[tabIndex]);
 
             AddNewLine(11);

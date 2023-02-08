@@ -8,7 +8,7 @@ using BepInEx.Logging;
 
 namespace SlugcatEyebrowRaise
 {
-    [BepInPlugin(MOD_ID + AUTHOR, MOD_ID, VERSION)]
+    [BepInPlugin(MOD_ID + "." + AUTHOR, MOD_ID, VERSION)]
     internal class SlugcatEyebrowRaise : BaseUnityPlugin
     {
         public const string VERSION = "1.0.0";
