@@ -6,7 +6,7 @@ namespace SlugcatEyebrowRaise
 {
     internal static class ResourceLoader
     {
-        private const string SPRITES_DIRPATH = "sprites";
+        public const string SPRITES_DIRPATH = "sprites";
 
         public static void LoadSprites()
         {

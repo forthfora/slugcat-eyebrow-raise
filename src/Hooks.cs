@@ -1,4 +1,5 @@
 ﻿using HUD;
+using IL.MoreSlugcats;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using RWCustom;
@@ -24,6 +25,8 @@ namespace SlugcatEyebrowRaise
             On.PlayerGraphics.DrawSprites += PlayerGraphics_DrawSprites;
 
             On.RoomCamera.DrawUpdate += RoomCamera_DrawUpdate;
+
+            On.Menu.RainEffect.LightningSpike += RainEffect_LightningSpike;
         }
 
         private static void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
@@ -53,10 +56,14 @@ namespace SlugcatEyebrowRaise
             Enums.Sounds.UnregisterValues();
         }
 
-        private const int MAX_NUMBER_OF_PLAYERS = 4;
+        private static void RainEffect_LightningSpike(On.Menu.RainEffect.orig_LightningSpike orig, Menu.RainEffect self, float newInt, float dropOffFrames)
+        {
+            orig(self, newInt, dropOffFrames);
 
-        private const int ANIMATION_FRAMERATE = 20;
-        private const int FRAME_COUNT = 3;
+            if (self.lightningIntensity > 0.3f) self.menu.PlaySound(GetVineBoomSoundID(), 0.0f, self.lightningIntensity + 0.2f, 0.5f);
+        }
+
+        private const int MAX_NUMBER_OF_PLAYERS = 4;
 
         private const float MAX_ZOOM = 0.15f;
         private const float ZOOM_DURATION = 1.0f;
@@ -64,7 +71,7 @@ namespace SlugcatEyebrowRaise
         private const float EYEBROW_RAISE_MIN_DURATION = 2.5f;
 
         private const float SHAKE_DURATION = 1.5f;
-        private const float SHAKE_INTENSITY_NORMAL = 0.25f;
+        private const float SHAKE_INTENSITY_NORMAL = 0.15f;
         private const float SHAKE_INTENSITY_LOUD = 1.0f;
 
         private readonly static bool[] isPlayerKeyPressed = new bool[MAX_NUMBER_OF_PLAYERS];
@@ -210,13 +217,13 @@ namespace SlugcatEyebrowRaise
             int playerIndex = self.player.playerState.playerNumber;
             int raiseLevel = playerEyebrowRaiseLevel[playerIndex];
 
-            if (Time.time - raiseTimers[playerIndex] > 1.0f / ANIMATION_FRAMERATE)
+            if (Time.time - raiseTimers[playerIndex] > 1.0f / Options.animationFrameRate.Value)
             {
                 raiseTimers[playerIndex] = Time.time;
 
                 if (isPlayerEyebrowRaised[playerIndex])
                 {
-                    if (raiseLevel < FRAME_COUNT)
+                    if (raiseLevel < Options.animationFrameCount.Value)
                     {
                         raiseLevel++;
                     }
@@ -249,7 +256,7 @@ namespace SlugcatEyebrowRaise
                 face = "saint";
             }
 
-            if (self.blink > 0 && raiseLevel == FRAME_COUNT)
+            if (self.blink > 0 && raiseLevel == Options.animationFrameCount.Value)
             {
                 face += "_blink";
             }
@@ -405,11 +412,24 @@ namespace SlugcatEyebrowRaise
         {
             var c = new ILCursor(il);
             while (c.TryGotoNext(MoveType.AfterLabel,
+                i => i.MatchLdsfld<SoundID>("Inv_GO")
+                ))
+            {
+                c.Index += 8;
+                c.EmitDelegate<Action<Player>>((p) =>
+                {
+                    p.room.PlaySound(GetVineBoomSoundID(), p.mainBodyChunk);
+                });
+                break;
+            }
+
+            while (c.TryGotoNext(MoveType.AfterLabel,
                 x => x.MatchLdsfld<SoundID>("UI_Slugcat_Die")
                 ))
             {
                 c.Remove();
                 c.Emit<Enums.Sounds>(OpCodes.Ldsfld, GetVineBoomStringID());
+                break;
             }
         }
 
@@ -422,6 +442,7 @@ namespace SlugcatEyebrowRaise
             {
                 c.Remove();
                 c.Emit<Enums.Sounds>(OpCodes.Ldsfld, GetVineBoomStringID());
+                break;
             }
         }
         #endregion

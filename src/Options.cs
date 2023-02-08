@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO.Ports;
 using Menu.Remix.MixedUI;
@@ -29,7 +30,7 @@ namespace SlugcatEyebrowRaise
             "When checked, the camera shakes under the sheer weight of raising your eyebrow.",
             null, "", "Camera Shake?"));
 
-        public static Configurable<bool> zoomCamera = instance.config.Bind("zoomCamera", false, new ConfigurableInfo(
+        public static Configurable<bool> zoomCamera = instance.config.Bind("zoomCamera", true, new ConfigurableInfo(
             "When checked, makes the camera zoom in on slugcat whenever they raise their eyebrow." +
             "\n(does not work well for jolly coop, will always focus on the first slugcat to enter the room on screen)",
             null, "", "Zoom Camera?"));
@@ -60,6 +61,16 @@ namespace SlugcatEyebrowRaise
 
         public static Configurable<KeyCode> player4Keybind = instance.config.Bind("player4Keybind", KeyCode.Joystick4Button4, new ConfigurableInfo(
             "Keybind to trigger the eyebrow raise for player 4.", null, "", "Player 4 Keybind"));
+
+        public static Configurable<int> animationFrameRate = instance.config.Bind("animationFrameRate", 20, new ConfigurableInfo(
+            "The frame rate of the eyebrow raise animation.",
+            new ConfigAcceptableRange<int>(1, 60), "", "Frame Rate"));
+
+        public static Configurable<int> animationFrameCount = instance.config.Bind("animationFrameCount", 3, new ConfigurableInfo(
+            "The number of frames the eyebrow raise animation contains, with the count being equal to the last frame.",
+            new ConfigAcceptableRange<int>(1, 10), "", "Frame Count"));
+
+        private OpSimpleButton? openSpritesDirectoryButton;
         #endregion
 
 
@@ -93,7 +104,7 @@ namespace SlugcatEyebrowRaise
         private readonly List<OpLabel> textLabels = new();
         #endregion
 
-        private const int NUMBER_OF_TABS = 2;
+        private const int NUMBER_OF_TABS = 3;
 
         public override void Initialize()
         {
@@ -116,7 +127,7 @@ namespace SlugcatEyebrowRaise
             DrawCheckBoxes(ref Tabs[tabIndex]);
 
 
-            AddNewLine(11);
+            AddNewLine(12);
             DrawBox(ref Tabs[tabIndex]);
 
             AddTab(ref tabIndex, "Input");
@@ -171,10 +182,38 @@ namespace SlugcatEyebrowRaise
                 new OpKeyBinder(player4Keybind, new Vector2(160f, 52f), new Vector2(146f, 30f), false)
                 );
 
-            AddNewLine(22);
+            AddNewLine(21);
+            DrawBox(ref Tabs[tabIndex]);
+
+            AddTab(ref tabIndex, "Animation");
+
+            AddNewLine(2);
+
+            // Requires stripped assembly to compile atm
+            openSpritesDirectoryButton = new OpSimpleButton(new Vector2(pos.x + (marginX.y - marginX.x) / 2.0f - 125.0f, pos.y), new Vector2(250.0f, 30.0f), "OPEN SPRITES DIRECTORY")
+            {
+                colorEdge = new UnityEngine.Color(1f, 1f, 1f, 1f),
+                colorFill = new UnityEngine.Color(0.0f, 0.0f, 0.0f, 0.5f),
+                description = "Opens the sprites directory." +
+                "\nYou can add custom face sprites here!"
+            };
+            openSpritesDirectoryButton.OnClick += openSpritesDirectoryButton_OnClick;
+            Tabs[tabIndex].AddItems(openSpritesDirectoryButton);
+
+            AddNewLine();
+
+            AddSlider(animationFrameRate, (string)animationFrameRate.info.Tags[0]);
+            AddSlider(animationFrameCount, (string)animationFrameCount.info.Tags[0]);
+            DrawSliders(ref Tabs[tabIndex]);
+
+            AddNewLine(11);
             DrawBox(ref Tabs[tabIndex]);
         }
 
+        private void openSpritesDirectoryButton_OnClick(UIfocusable trigger) => Process.Start(AssetManager.ResolveDirectory(ResourceLoader.SPRITES_DIRPATH));
+
+
+        #region UI Elements
         private void AddTab(ref int tabIndex, string tabName)
         {
             tabIndex++;
@@ -194,7 +233,6 @@ namespace SlugcatEyebrowRaise
             AddBox();
         }
 
-        #region UI Elements
         private void InitializeMarginAndPos()
         {
             marginX = new Vector2(50f, 550f);
