@@ -1,4 +1,5 @@
-﻿using Mono.Cecil.Cil;
+﻿using HUD;
+using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using RWCustom;
 using System;
@@ -24,7 +25,6 @@ namespace SlugcatEyebrowRaise
 
             On.RoomCamera.DrawUpdate += RoomCamera_DrawUpdate;
         }
-
 
         private static void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
         {
@@ -258,7 +258,7 @@ namespace SlugcatEyebrowRaise
                 face += "_" + raiseLevel;
             }
 
-            return face;
+            return SlugcatEyebrowRaise.MOD_ID + "_" + face;
         }
 
         private static void SetFaceSprite(RoomCamera.SpriteLeaser sLeaser, string spriteName)
