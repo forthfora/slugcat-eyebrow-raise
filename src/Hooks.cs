@@ -192,7 +192,7 @@ namespace SlugcatEyebrowRaise
             if (Options.vineBoomCosmetics.Value)
             {
                 player.room.AddObject(new Explosion.ExplosionLight(pos2, 100.0f, 0.2f, 16, Color.white));
-                player.room.AddObject(new ShockWave(pos2, 500f, 0.05f, 2, false));
+                player.room.AddObject(new ShockWave(pos2, 1000f, 0.05f, 2, false));
 
                 for (int l = 0; l < 10; l++)
                 {
