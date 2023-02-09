@@ -1,11 +1,16 @@
 ﻿using HUD;
 using IL.MoreSlugcats;
+using JetBrains.Annotations;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
+using MoreSlugcats;
+using On.MoreSlugcats;
 using RWCustom;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -21,12 +26,53 @@ namespace SlugcatEyebrowRaise
             On.RainWorld.OnModsInit += RainWorld_OnModsInit;
             On.RainWorld.OnModsDisabled += RainWorld_OnModsDisabled;
 
+            On.ModManager.RefreshModsLists += ModManager_RefreshModsLists;
+
             On.Player.Update += Player_Update;
             On.PlayerGraphics.DrawSprites += PlayerGraphics_DrawSprites;
 
             On.RoomCamera.DrawUpdate += RoomCamera_DrawUpdate;
 
             On.Menu.RainEffect.LightningSpike += RainEffect_LightningSpike;
+        }
+
+        private static void ModManager_RefreshModsLists(On.ModManager.orig_RefreshModsLists orig, RainWorld rainWorld)
+        {
+            orig(rainWorld);
+
+            // Prioritize this mod's assets so they override MSC / Remix
+            
+            // Get the index above MoreSlugcats, then Remix in that priority - inserting our mod at this index ensures the game loads assets from our mod first
+            int? targetIndex = null;
+
+            for (int i = ModManager.ActiveMods.Count - 1; i >= 0; i--)
+            {
+                if (ModManager.ActiveMods[i].id != MoreSlugcats.MoreSlugcats.MOD_ID && ModManager.ActiveMods[i].id != MoreSlugcats.MMF.MOD_ID) continue;
+
+                targetIndex = i + 1;
+                break;
+            }
+
+            // If neither Remix nor MoreSlugcats is installed, we don't need to do anything
+            if (targetIndex == null) return;
+
+            // Get our mod
+            ModManager.Mod? thisMod = null;
+
+            foreach (ModManager.Mod mod in ModManager.ActiveMods)
+            {
+                if (mod.id != SlugcatEyebrowRaise.MOD_ID) continue;
+
+                thisMod = mod;
+                ModManager.ActiveMods.Remove(mod);
+                break;
+            }
+
+            // Just in case getting our mod fails - this should never happen as our mod has to be active for this to run!
+            if (thisMod == null) return;
+
+            SlugcatEyebrowRaise.Logger.LogWarning($"Successfully overrode load order! Placed mod at {targetIndex}, above MSC/Remix");
+            ModManager.ActiveMods.Insert((int)targetIndex, thisMod);
         }
 
         private static void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
