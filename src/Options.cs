@@ -1,10 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
-using System.IO.Ports;
 using Menu.Remix.MixedUI;
 using UnityEngine;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace SlugcatEyebrowRaise
 {   
@@ -81,7 +78,6 @@ namespace SlugcatEyebrowRaise
 
         private OpSimpleButton? openSpritesDirectoryButton;
         #endregion
-
 
         #region Parameters
         private readonly float spacing = 20f;

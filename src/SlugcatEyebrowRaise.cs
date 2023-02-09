@@ -1,10 +1,14 @@
 ﻿using BepInEx;
 using System.Security.Permissions;
 using BepInEx.Logging;
+using System.Runtime.CompilerServices;
+using System.Security;
 
-#pragma warning disable CS0618
+#pragma warning disable CS0618 // Type or member is obsolete
+[assembly: IgnoresAccessChecksTo("Assembly-CSharp")]
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
-#pragma warning restore CS0618
+[module: UnverifiableCode]
+#pragma warning restore CS0618 // Type or member is obsolete
 
 namespace SlugcatEyebrowRaise
 {

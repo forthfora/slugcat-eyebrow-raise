@@ -1,16 +1,9 @@
-﻿using HUD;
-using IL.MoreSlugcats;
-using JetBrains.Annotations;
-using Mono.Cecil.Cil;
+﻿using Mono.Cecil.Cil;
 using MonoMod.Cil;
-using MoreSlugcats;
-using On.MoreSlugcats;
 using RWCustom;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
+using System.Data;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -49,7 +42,7 @@ namespace SlugcatEyebrowRaise
             {
                 if (ModManager.ActiveMods[i].id != MoreSlugcats.MoreSlugcats.MOD_ID && ModManager.ActiveMods[i].id != MoreSlugcats.MMF.MOD_ID) continue;
 
-                targetIndex = i + 1;
+                targetIndex = i;
                 break;
             }
 
@@ -72,12 +65,18 @@ namespace SlugcatEyebrowRaise
             if (thisMod == null) return;
 
             SlugcatEyebrowRaise.Logger.LogWarning($"Successfully overrode load order! Placed mod at {targetIndex}, above MSC/Remix");
+
             ModManager.ActiveMods.Insert((int)targetIndex, thisMod);
         }
+
+        private static bool isInit = false;
 
         private static void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
         {
             orig(self);
+
+            if (isInit) return;
+            isInit = true;
 
             MachineConnector.SetRegisteredOI(SlugcatEyebrowRaise.MOD_ID, Options.instance);
             Enums.Sounds.RegisterValues();
