@@ -226,14 +226,17 @@ namespace SlugcatEyebrowRaise
                             {
                                 (creature as Scavenger).HeavyStun(80);
                             }
-                            else if (creature is not Player || Options.eyebrowRaiseFriendlyFire.Value)
+                            else if (creature is not Player)
                             {
                                 creature.Stun(80);
                             }
 
                             if (creature is not Player || Options.eyebrowRaiseFriendlyFire.Value)
                             {
-                                creature.firstChunk.vel = Custom.DegToVec(Custom.AimFromOneVectorToAnother(pos2, creature.firstChunk.pos)) * Options.eyebrowRaisePower.Value;
+                                if (((Player)creature).playerState.playerNumber != player.playerState.playerNumber)
+                                {
+                                    creature.firstChunk.vel = Custom.DegToVec(Custom.AimFromOneVectorToAnother(pos2, creature.firstChunk.pos)) * Options.eyebrowRaisePower.Value;
+                                }
                             }
 
                             if (creature is TentaclePlant)
