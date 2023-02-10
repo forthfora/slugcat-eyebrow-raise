@@ -38,12 +38,10 @@ namespace SlugcatEyebrowRaise
             // Get the index above MoreSlugcats, then Remix in that priority - inserting our mod at this index ensures the game loads assets from our mod first
             int? targetIndex = null;
 
-            for (int i = ModManager.ActiveMods.Count - 1; i >= 0; i--)
+            for (int i = 0; i < ModManager.ActiveMods.Count; i++)
             {
                 if (ModManager.ActiveMods[i].id != MoreSlugcats.MoreSlugcats.MOD_ID && ModManager.ActiveMods[i].id != MoreSlugcats.MMF.MOD_ID) continue;
-
                 targetIndex = i;
-                break;
             }
 
             // If neither Remix nor MoreSlugcats is installed, we don't need to do anything
@@ -233,7 +231,7 @@ namespace SlugcatEyebrowRaise
 
                             if (creature is not Player || Options.eyebrowRaiseFriendlyFire.Value)
                             {
-                                if (((Player)creature).playerState.playerNumber != player.playerState.playerNumber)
+                                if (((Player)creature) != player.slugOnBack.slugcat && ((Player)creature).slugOnBack.slugcat != player)
                                 {
                                     creature.firstChunk.vel = Custom.DegToVec(Custom.AimFromOneVectorToAnother(pos2, creature.firstChunk.pos)) * Options.eyebrowRaisePower.Value;
                                 }
