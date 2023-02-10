@@ -152,12 +152,12 @@ namespace SlugcatEyebrowRaise
                 if (!isPlayerKeyPressed[playerIndex] || Options.playEveryFrame.Value)
                 {
                     player.room.PlaySound(GetVineBoomSoundID(), player.mainBodyChunk);
+                    playerEyebrowRaiseDurationTimer[playerIndex] = Time.time + EYEBROW_RAISE_MIN_DURATION;
                     EyebrowRaiseExplosion(player);
 
                     if (Options.cameraShake.Value)
                     {
                         shakeTimer = Time.time + SHAKE_DURATION;
-                        playerEyebrowRaiseDurationTimer[playerIndex] = Time.time + EYEBROW_RAISE_MIN_DURATION;
                     }
 
                     if (Options.zoomCamera.Value && player.room.game.Players.Count == 1)
