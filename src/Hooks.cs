@@ -231,7 +231,7 @@ namespace SlugcatEyebrowRaise
 
                             if (creature is not Player || Options.eyebrowRaiseFriendlyFire.Value)
                             {
-                                if (((Player)creature) != player.slugOnBack.slugcat && ((Player)creature).slugOnBack.slugcat != player)
+                                if (creature is not Player || (((Player)creature) != player.slugOnBack.slugcat && ((Player)creature).slugOnBack.slugcat != player))
                                 {
                                     creature.firstChunk.vel = Custom.DegToVec(Custom.AimFromOneVectorToAnother(pos2, creature.firstChunk.pos)) * Options.eyebrowRaisePower.Value;
                                 }
