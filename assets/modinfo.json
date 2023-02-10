@@ -1,10 +1,10 @@
 {
 	"id": "slugcateyebrowraise",
 	"name": "Slugcat Eyebrow Raise",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"target_game_version": "v1.9.04",
-	"authors": "Slugcat Eyebrow Raise<LINE>by forthbridge<LINE> <LINE>vaLE - Thumbnail<LINE>Henpemaz - Camera Zoom",
-	"description": "Source: https://github.com/forthbridge/slugcat-eyebrow-raise<LINE> <LINE>Default Keybind is Left Alt (Keyboard), or Left Bumper (Controller)<LINE> <LINE>Check the configs to modify these and much more!",
+	"authors": "Slugcat Eyebrow Raise<LINE>by forthbridge<LINE> <LINE>vaLE - Thumbnail<LINE>My Sister - Illustrations<LINE>Henpemaz - Camera Zoom<LINE>badgerotter - Playtesting",
+	"description": "Source: https://github.com/forthbridge/slugcat-eyebrow-raise<LINE> <LINE>Default Keybind is Left Alt (Keyboard), or Left Bumper (Controller)<LINE> <LINE>Check the Remix Menu Config to modify these and much more!",
 	"requirements": [],
 	"requirements_names": [],
 	"checksum_override_version": false

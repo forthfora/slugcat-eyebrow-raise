@@ -67,14 +67,9 @@ namespace SlugcatEyebrowRaise
             ModManager.ActiveMods.Insert((int)targetIndex, thisMod);
         }
 
-        private static bool isInit = false;
-
         private static void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
         {
             orig(self);
-
-            if (isInit) return;
-            isInit = true;
 
             MachineConnector.SetRegisteredOI(SlugcatEyebrowRaise.MOD_ID, Options.instance);
             Enums.Sounds.RegisterValues();
