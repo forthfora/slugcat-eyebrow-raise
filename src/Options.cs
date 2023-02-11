@@ -30,7 +30,7 @@ namespace SlugcatEyebrowRaise
         public static Configurable<bool> zoomCamera = instance.config.Bind("zoomCamera", true, new ConfigurableInfo(
             "When checked, makes the camera zoom in on slugcat whenever they raise their eyebrow." +
             "\n(disabled for co-op modes as the camera cannot decide which player to zoom in on)",
-            null, "", "Zoom Camera?"));
+            null, "", "Zoom Camera? (Experimental)"));
 
 
         public static Configurable<bool> vineBoomLoud = instance.config.Bind("vineBoomLoud", false, new ConfigurableInfo(
@@ -48,6 +48,11 @@ namespace SlugcatEyebrowRaise
         public static Configurable<bool> eyebrowRaiseFriendlyFire = instance.config.Bind("eyebrowRaiseFriendlyFire", true, new ConfigurableInfo(
             "When checked, the eyebrow raise explosion will affect other players (if the explosion is enabled of course!)",
             null, "", "Eyebrow Raise Friendly Fire?"));
+
+        public static Configurable<bool> affectsCarried = instance.config.Bind("affectsCarried", false, new ConfigurableInfo(
+            "When checked, the eyebrow raise explosion will affect creatures you are carrying." +
+            "\nThis could cause problems if you were using a squidcada, for example.",
+            null, "", "Affects Carried Creatures?"));
 
         public static Configurable<KeyCode> keyboardKeybind = instance.config.Bind("keyboardKeybind", KeyCode.LeftAlt, new ConfigurableInfo(
             "Keybind to trigger the eyebrow raise for player 1.", null, "", "Keyboard Keybind"));
@@ -128,6 +133,7 @@ namespace SlugcatEyebrowRaise
             DrawCheckBoxes(ref Tabs[tabIndex]);
 
             AddCheckBox(eyebrowRaiseFriendlyFire, (string)eyebrowRaiseFriendlyFire.info.Tags[0]);
+            AddCheckBox(affectsCarried, (string)affectsCarried.info.Tags[0]);
             DrawCheckBoxes(ref Tabs[tabIndex]);
 
             AddNewLine(2);
@@ -144,6 +150,7 @@ namespace SlugcatEyebrowRaise
             AddNewLine(1);
             DrawBox(ref Tabs[tabIndex]);
 
+            #region Input
             AddTab(ref tabIndex, "Input");
 
             Tabs[tabIndex].AddItems(
@@ -198,6 +205,9 @@ namespace SlugcatEyebrowRaise
 
             AddNewLine(21);
             DrawBox(ref Tabs[tabIndex]);
+            #endregion
+
+            #region Animation
 
             AddTab(ref tabIndex, "Animation");
 
@@ -221,6 +231,8 @@ namespace SlugcatEyebrowRaise
 
             AddNewLine(11);
             DrawBox(ref Tabs[tabIndex]);
+
+            #endregion
         }
 
         private void openSpritesDirectoryButton_OnClick(UIfocusable trigger) => Process.Start(AssetManager.ResolveDirectory(ResourceLoader.SPRITES_DIRPATH));

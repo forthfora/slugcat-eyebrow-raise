@@ -3,7 +3,6 @@ using MonoMod.Cil;
 using RWCustom;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -182,6 +181,7 @@ namespace SlugcatEyebrowRaise
             }
         }
 
+        // This is based on artificer's parry code, with quite a few adjustments!
         private static void EyebrowRaiseExplosion(Player player)
         {
             Vector2 pos2 = player.firstChunk.pos;
@@ -220,30 +220,8 @@ namespace SlugcatEyebrowRaise
                         {
                             player.room.socialEventRecognizer.WeaponAttack(null, player, creature, true);
                             creature.SetKillTag(player.abstractCreature);
-                            if (creature is Scavenger)
-                            {
-                                (creature as Scavenger).HeavyStun(80);
-                            }
-                            else if (creature is not Player)
-                            {
-                                creature.Stun(80);
-                            }
 
-                            if (creature is not Player || Options.eyebrowRaiseFriendlyFire.Value)
-                            {
-                                if (creature is not Player || (((Player)creature) != player.slugOnBack.slugcat && ((Player)creature).slugOnBack.slugcat != player))
-                                {
-                                    creature.firstChunk.vel = Custom.DegToVec(Custom.AimFromOneVectorToAnother(pos2, creature.firstChunk.pos)) * Options.eyebrowRaisePower.Value;
-                                }
-                            }
-
-                            if (creature is TentaclePlant)
-                            {
-                                for (int num5 = 0; num5 < creature.grasps.Length; num5++)
-                                {
-                                    creature.ReleaseGrasp(num5);
-                                }
-                            }
+                            ApplyKnockback(pos2, creature, player);
                         }
                     }
                 }
@@ -259,6 +237,48 @@ namespace SlugcatEyebrowRaise
                 list[num6].SetRandomSpin();
             }
 
+        }
+
+        private static void ApplyKnockback(Vector2 pos2, Creature creature, Player player)
+        {
+            // Do not affect players if friendly fire is off
+            if (creature is Player && !Options.eyebrowRaiseFriendlyFire.Value) return;
+
+            // Do not affect held creatures held by the player, unless the option is enabled
+            if (!Options.affectsCarried.Value)
+            {
+                for (int i = 0; i < creature.grabbedBy.Count; i++)
+                {
+                    if (creature.grabbedBy[i].grabber == player)
+                    {
+                        return;
+                    }
+                }
+            }
+
+            // Do not affect carried / carrying players
+            if (creature is Player playerCreature && (playerCreature == player.slugOnBack.slugcat || playerCreature.slugOnBack.slugcat == player)) return;
+
+            creature.firstChunk.vel = Custom.DegToVec(Custom.AimFromOneVectorToAnother(pos2, creature.firstChunk.pos)) * Options.eyebrowRaisePower.Value;
+
+            // Scavengers have a unique stun mechanic(?)
+            if (creature is Scavenger)
+            {
+                ((Scavenger)creature).HeavyStun(80);
+            }
+            else
+            {
+                creature.Stun(80);
+            }
+
+            // Force tentacle plants to release you
+            if (creature is TentaclePlant)
+            {
+                for (int num5 = 0; num5 < creature.grasps.Length; num5++)
+                {
+                    creature.ReleaseGrasp(num5);
+                }
+            }
         }
 
         private static void PlayerGraphics_DrawSprites(On.PlayerGraphics.orig_DrawSprites orig, PlayerGraphics self, RoomCamera.SpriteLeaser sLeaser, RoomCamera rCam, float timeStacker, Vector2 camPos)
