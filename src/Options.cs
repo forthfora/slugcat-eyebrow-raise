@@ -54,6 +54,15 @@ namespace SlugcatEyebrowRaise
             "\nThis could cause problems if you were using a squidcada, for example.",
             null, "", "Affects Carried Creatures?"));
 
+        public static Configurable<bool> enableIllustrations = instance.config.Bind("enableIllustrations", true, new ConfigurableInfo(
+            "When checked, gives a lot of in game illustrations an eyebrow raise!",
+            null, "", "Eyebrow Raise Illustrations?"));
+
+        public static Configurable<bool> disableGraphicsOverride = instance.config.Bind("disableGraphicsOverride", false, new ConfigurableInfo(
+            "Disables the asset loader override, may fix compatibility with certain mods." +
+            "\nWill likely break the illustration loading and the relevant illustration config!",
+            null, "", "Disable Asset Override?"));
+
         public static Configurable<KeyCode> keyboardKeybind = instance.config.Bind("keyboardKeybind", KeyCode.LeftAlt, new ConfigurableInfo(
             "Keybind to trigger the eyebrow raise for player 1.", null, "", "Keyboard Keybind"));
 
@@ -125,10 +134,6 @@ namespace SlugcatEyebrowRaise
             AddTab(ref tabIndex, "General");
 
             AddCheckBox(vineBoomExplosion, (string)vineBoomExplosion.info.Tags[0]);
-            AddCheckBox(vineBoomCosmetics, (string)vineBoomCosmetics.info.Tags[0]);
-            DrawCheckBoxes(ref Tabs[tabIndex]);
-
-            AddCheckBox(cameraShake, (string)cameraShake.info.Tags[0]);
             AddCheckBox(zoomCamera, (string)zoomCamera.info.Tags[0]);
             DrawCheckBoxes(ref Tabs[tabIndex]);
 
@@ -136,12 +141,18 @@ namespace SlugcatEyebrowRaise
             AddCheckBox(affectsCarried, (string)affectsCarried.info.Tags[0]);
             DrawCheckBoxes(ref Tabs[tabIndex]);
 
+
+            AddCheckBox(vineBoomCosmetics, (string)vineBoomCosmetics.info.Tags[0]);
+            AddCheckBox(cameraShake, (string)cameraShake.info.Tags[0]);
+            DrawCheckBoxes(ref Tabs[tabIndex]);
+
+            AddCheckBox(enableIllustrations, (string)enableIllustrations.info.Tags[0]);
+            DrawCheckBoxes(ref Tabs[tabIndex]);
+
             AddNewLine(2);
 
             AddSlider(eyebrowRaisePower, (string)eyebrowRaisePower.info.Tags[0], "1", "1000");
             DrawSliders(ref Tabs[tabIndex]);
-
-            AddNewLine(3);
 
             AddCheckBox(vineBoomLoud, (string)vineBoomLoud.info.Tags[0]);
             AddCheckBox(playEveryFrame, (string)playEveryFrame.info.Tags[0]);
@@ -207,9 +218,9 @@ namespace SlugcatEyebrowRaise
             DrawBox(ref Tabs[tabIndex]);
             #endregion
 
-            #region Animation
+            #region Cosmetics
 
-            AddTab(ref tabIndex, "Animation");
+            AddTab(ref tabIndex, "Cosmetics");
 
             AddNewLine(2);
 
@@ -229,7 +240,10 @@ namespace SlugcatEyebrowRaise
             AddSlider(animationFrameCount, (string)animationFrameCount.info.Tags[0], "1", "10");
             DrawSliders(ref Tabs[tabIndex]);
 
-            AddNewLine(11);
+            AddCheckBox(disableGraphicsOverride, (string)disableGraphicsOverride.info.Tags[0]);
+            DrawCheckBoxes(ref Tabs[tabIndex]);
+
+            AddNewLine(8);
             DrawBox(ref Tabs[tabIndex]);
 
             #endregion

@@ -3,6 +3,7 @@ using MonoMod.Cil;
 using RWCustom;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -19,6 +20,7 @@ namespace SlugcatEyebrowRaise
             On.RainWorld.OnModsDisabled += RainWorld_OnModsDisabled;
 
             On.ModManager.RefreshModsLists += ModManager_RefreshModsLists;
+            On.AssetManager.ResolveFilePath += AssetManager_ResolveFilePath;
 
             On.Player.Update += Player_Update;
             On.PlayerGraphics.DrawSprites += PlayerGraphics_DrawSprites;
@@ -26,44 +28,6 @@ namespace SlugcatEyebrowRaise
             On.RoomCamera.DrawUpdate += RoomCamera_DrawUpdate;
 
             On.Menu.RainEffect.LightningSpike += RainEffect_LightningSpike;
-        }
-
-        private static void ModManager_RefreshModsLists(On.ModManager.orig_RefreshModsLists orig, RainWorld rainWorld)
-        {
-            orig(rainWorld);
-
-            // Prioritize this mod's assets so they override MSC / Remix
-            
-            // Get the index above MoreSlugcats, then Remix in that priority - inserting our mod at this index ensures the game loads assets from our mod first
-            int? targetIndex = null;
-
-            for (int i = 0; i < ModManager.ActiveMods.Count; i++)
-            {
-                if (ModManager.ActiveMods[i].id != MoreSlugcats.MoreSlugcats.MOD_ID && ModManager.ActiveMods[i].id != MoreSlugcats.MMF.MOD_ID) continue;
-                targetIndex = i;
-            }
-
-            // If neither Remix nor MoreSlugcats is installed, we don't need to do anything
-            if (targetIndex == null) return;
-
-            // Get our mod
-            ModManager.Mod? thisMod = null;
-
-            foreach (ModManager.Mod mod in ModManager.ActiveMods)
-            {
-                if (mod.id != SlugcatEyebrowRaise.MOD_ID) continue;
-
-                thisMod = mod;
-                ModManager.ActiveMods.Remove(mod);
-                break;
-            }
-
-            // Just in case getting our mod fails - this should never happen as our mod has to be active for this to run!
-            if (thisMod == null) return;
-
-            SlugcatEyebrowRaise.Logger.LogWarning($"Successfully overrode load order! Placed mod at {targetIndex}, above MSC/Remix");
-
-            ModManager.ActiveMods.Insert((int)targetIndex, thisMod);
         }
 
         private static bool isInit = false;
@@ -84,10 +48,85 @@ namespace SlugcatEyebrowRaise
                 IL.Player.Die += Player_Die;
                 IL.HUD.TextPrompt.Update += TextPrompt_Update;
 
+                //IL.AssetManager.ResolveFilePath += AssetManager_ResolveFilePathIL;
+
             }
             catch (Exception ex)
             {
                 SlugcatEyebrowRaise.Logger.LogError(ex);
+            }
+        }
+
+        // Figure this out later
+        //private static void AssetManager_ResolveFilePathIL(ILContext il)
+        //{
+        //    ILLabel? dest = null;
+
+        //    var c = new ILCursor(il);
+        //    while (c.TryGotoNext(MoveType.AfterLabel,
+        //        i => i.MatchBr(out dest)
+        //        ))
+        //    {
+        //        c.MoveAfterLabels();
+        //        c.EmitDelegate<Func<int, bool>>((index) =>
+        //        {
+        //            return ModManager.ActiveMods[index].id == SlugcatEyebrowRaise.MOD_ID;
+        //        });
+
+        //        c.Emit(OpCodes.Brtrue, dest);
+
+        //        break;
+        //    }
+        //}
+
+        // Hacky and not recommended, should use an IL Hook instead but I am not experienced enough yet
+        // Expecting to run into compatibility issues here!
+        private static string AssetManager_ResolveFilePath(On.AssetManager.orig_ResolveFilePath orig, string path)
+        {
+            if (Options.disableGraphicsOverride.Value) return orig(path);
+
+            string filePath = Path.Combine(modPath, path.ToLowerInvariant());
+
+            if (Options.enableIllustrations.Value && File.Exists(filePath))
+            {
+                SlugcatEyebrowRaise.Logger.LogWarning($"Gave asset eyebrow (overrode it): {path}");
+                return filePath;
+            }
+
+            //return orig(path);
+
+            // Original Asset Manager code
+            string text = Path.Combine(Path.Combine(Custom.RootFolderDirectory(), "mergedmods"), path.ToLowerInvariant());
+            if (File.Exists(text))
+            {
+                return text;
+            }
+            for (int i = ModManager.ActiveMods.Count - 1; i >= 0; i--)
+            {
+                // Added
+                if (ModManager.ActiveMods[i].id == SlugcatEyebrowRaise.MOD_ID) continue;
+
+                string text2 = Path.Combine(ModManager.ActiveMods[i].path, path.ToLowerInvariant());
+                if (File.Exists(text2))
+                {
+                    return text2;
+                }
+            }
+            return Path.Combine(Custom.RootFolderDirectory(), path.ToLowerInvariant());
+        }
+
+        private static string modPath = "";
+
+        private static void ModManager_RefreshModsLists(On.ModManager.orig_RefreshModsLists orig, RainWorld rainWorld)
+        {
+            orig(rainWorld);
+
+            foreach (ModManager.Mod mod in ModManager.ActiveMods)
+            {
+                if (mod.id != SlugcatEyebrowRaise.MOD_ID) continue;
+
+                modPath = mod.path;
+                break;
             }
         }
 
@@ -166,9 +205,12 @@ namespace SlugcatEyebrowRaise
                     }
                 }
 
-                isPlayerKeyPressed[playerIndex] = true;
                 isPlayerEyebrowRaised[playerIndex] = true;
 
+                if (!player.isSlugpup)
+                {
+                    isPlayerKeyPressed[playerIndex] = true;
+                }
             }
             else
             {
@@ -216,6 +258,7 @@ namespace SlugcatEyebrowRaise
                     if (player.room.physicalObjects[m][n] is Creature && player.room.physicalObjects[m][n] != player)
                     {
                         Creature creature = player.room.physicalObjects[m][n] as Creature;
+
                         if (Custom.Dist(pos2, creature.firstChunk.pos) < 200f && (Custom.Dist(pos2, creature.firstChunk.pos) < 60f || player.room.VisualContact(player.abstractCreature.pos, creature.abstractCreature.pos)))
                         {
                             player.room.socialEventRecognizer.WeaponAttack(null, player, creature, true);
@@ -249,15 +292,25 @@ namespace SlugcatEyebrowRaise
             {
                 for (int i = 0; i < creature.grabbedBy.Count; i++)
                 {
-                    if (creature.grabbedBy[i].grabber == player)
-                    {
-                        return;
-                    }
+                    if (creature.grabbedBy[i].grabber == player) return;
                 }
             }
 
             // Do not affect carried / carrying players
-            if (creature is Player playerCreature && (playerCreature == player.slugOnBack.slugcat || playerCreature.slugOnBack.slugcat == player)) return;
+            if (creature is Player playerCreature)
+            {
+                // Creature is on our back
+                if (!player.isSlugpup && playerCreature == player.slugOnBack.slugcat) return;
+
+                // We are on the creature's back
+                if (!playerCreature.isSlugpup && playerCreature.slugOnBack.slugcat == player) return;
+
+                // Do not affect players holding us
+                for (int i = 0; i < player.grabbedBy.Count; i++)
+                {
+                    if (!Options.affectsCarried.Value && player.grabbedBy[i].grabber == playerCreature) return;
+                }
+            }
 
             creature.firstChunk.vel = Custom.DegToVec(Custom.AimFromOneVectorToAnother(pos2, creature.firstChunk.pos)) * Options.eyebrowRaisePower.Value;
 
@@ -266,7 +319,7 @@ namespace SlugcatEyebrowRaise
             {
                 ((Scavenger)creature).HeavyStun(80);
             }
-            else
+            else if (creature is not Player)
             {
                 creature.Stun(80);
             }
