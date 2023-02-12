@@ -1,0 +1,16 @@
+[h1]Default Keybind is [u]Left Alt[/u] (Keyboard), or [u]Left Bumper[/u] (Controller)[/h1]
+ 
+[h1]Check the Remix Menu Config to modify these and much more![/h1]
+
+[b][u]If 'Emerald's Tweaks' is installed, the mod may only work properly if you enable the graphics fix setting[/u][/b] (thanks Vallen!)
+
+[b][u]Source: https://github.com/forthbridge/slugcat-eyebrow-raise[/u]
+Please report any issues over there, or alternatively, contact me on Discord! (forthbridge#0683)[/b]
+
+[h1]Credits[/h1]
+[list]
+    [*]vaLE - Workshop Thumbnail
+    [*]My Sister - Illustrations
+    [*]Henpemaz - Camera Zoom Code
+    [*]badgerotter - Playtesting
+[/list]
