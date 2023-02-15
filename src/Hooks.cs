@@ -146,11 +146,6 @@ namespace SlugcatEyebrowRaise
 
         private const int MAX_NUMBER_OF_PLAYERS = 4;
 
-        private const float MAX_ZOOM = 0.15f;
-        private const float ZOOM_DURATION = 1.0f;
-
-        private const float EYEBROW_RAISE_MIN_DURATION = 2.5f;
-
         private const float SHAKE_DURATION = 1.5f;
         private const float SHAKE_INTENSITY_NORMAL = 0.15f;
         private const float SHAKE_INTENSITY_LOUD = 1.0f;
@@ -189,8 +184,8 @@ namespace SlugcatEyebrowRaise
             {
                 if (!isPlayerKeyPressed[playerIndex] || Options.playEveryFrame.Value)
                 {
-                    player.room.PlaySound(GetVineBoomSoundID(), player.mainBodyChunk);
-                    playerEyebrowRaiseDurationTimer[playerIndex] = Time.time + EYEBROW_RAISE_MIN_DURATION;
+                    player.room.PlaySound(GetVineBoomSoundID(), player.mainBodyChunk, false, Options.eyebrowRaiseVolume.Value / 100.0f, 1.0f);
+                    playerEyebrowRaiseDurationTimer[playerIndex] = Time.time + (Options.eyebrowRaiseDuration.Value / 10.0f);
                     EyebrowRaiseExplosion(player);
 
                     if (Options.cameraShake.Value)
@@ -200,8 +195,8 @@ namespace SlugcatEyebrowRaise
 
                     if (Options.zoomCamera.Value && player.room.game.Players.Count == 1)
                     {
-                        cameraZoomAmount = MAX_ZOOM;
-                        zoomTimer = Time.time + ZOOM_DURATION;
+                        cameraZoomAmount = (Options.eyebrowRaiseZoom.Value / 100.0f);
+                        zoomTimer = Time.time + (Options.eyebrowRaiseZoomDuration.Value / 10.0f);
                     }
                 }
 

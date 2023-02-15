@@ -63,6 +63,24 @@ namespace SlugcatEyebrowRaise
             "\nWill likely break the illustration loading and the relevant illustration config!",
             null, "", "Disable Asset Override?"));
 
+        public static Configurable<int> eyebrowRaiseVolume = instance.config.Bind("eyebrowRaiseVolume", 100, new ConfigurableInfo(
+            "The volume of the raise when THE BUTTON is pressed - does not affect menus!",
+            new ConfigAcceptableRange<int>(0, 200), "", "Eyebrow Raise Volume"));
+
+        public static Configurable<int> eyebrowRaiseDuration = instance.config.Bind("eyebrowRaiseDuration", 25, new ConfigurableInfo(
+            "How long does the eyebrow raise last?" +
+            "\nMeasured in 10ths of seconds.",
+            new ConfigAcceptableRange<int>(1, 100), "", "Eyebrow Raise Duration"));
+
+        public static Configurable<int> eyebrowRaiseZoom = instance.config.Bind("eyebrowRaiseZoom", 15, new ConfigurableInfo(
+            "How much does the eyebrow raise zoom in?",
+            new ConfigAcceptableRange<int>(10, 100), "", "Eyebrow Raise Zoom"));
+
+        public static Configurable<int> eyebrowRaiseZoomDuration = instance.config.Bind("eyebrowRaiseZoomDuration", 10, new ConfigurableInfo(
+            "How long does the eyebrow raise zoom last?" +
+            "\nMeasured in 10ths of seconds.",
+            new ConfigAcceptableRange<int>(1, 100), "", "Eyebrow Raise Zoom Duration"));
+
         public static Configurable<KeyCode> keyboardKeybind = instance.config.Bind("keyboardKeybind", KeyCode.LeftAlt, new ConfigurableInfo(
             "Keybind to trigger the eyebrow raise for player 1.", null, "", "Keyboard Keybind"));
 
@@ -123,7 +141,7 @@ namespace SlugcatEyebrowRaise
         private readonly List<OpLabel> textLabels = new();
         #endregion
 
-        private const int NUMBER_OF_TABS = 3;
+        private const int NUMBER_OF_TABS = 4;
 
         public override void Initialize()
         {
@@ -131,6 +149,7 @@ namespace SlugcatEyebrowRaise
             Tabs = new OpTab[NUMBER_OF_TABS];
             int tabIndex = -1;
 
+            #region General
             AddTab(ref tabIndex, "General");
 
             AddCheckBox(vineBoomExplosion, (string)vineBoomExplosion.info.Tags[0]);
@@ -160,6 +179,7 @@ namespace SlugcatEyebrowRaise
 
             AddNewLine(1);
             DrawBox(ref Tabs[tabIndex]);
+            #endregion
 
             #region Input
             AddTab(ref tabIndex, "Input");
@@ -245,7 +265,21 @@ namespace SlugcatEyebrowRaise
 
             AddNewLine(8);
             DrawBox(ref Tabs[tabIndex]);
+            #endregion
 
+
+            #region Volume & Zoom
+            AddTab(ref tabIndex, "Volume & Zoom");
+
+            AddSlider(eyebrowRaiseVolume, (string)eyebrowRaiseVolume.info.Tags[0], "0%", "please don't");
+            AddSlider(eyebrowRaiseDuration, (string)eyebrowRaiseDuration.info.Tags[0], "0.1s", "10.0s");
+
+            AddSlider(eyebrowRaiseZoom, (string)eyebrowRaiseZoom.info.Tags[0], "10%", "100%");
+            AddSlider(eyebrowRaiseZoomDuration, (string)eyebrowRaiseZoomDuration.info.Tags[0], "0.1s", "10.0s");
+            DrawSliders(ref Tabs[tabIndex]);
+            
+            AddNewLine(6);
+            DrawBox(ref Tabs[tabIndex]);
             #endregion
         }
 
