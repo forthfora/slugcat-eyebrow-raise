@@ -1,5 +1,6 @@
 ﻿using Mono.Cecil.Cil;
 using MonoMod.Cil;
+using MonoMod.RuntimeDetour;
 using RWCustom;
 using System;
 using System.Collections.Generic;
@@ -414,117 +415,127 @@ namespace SlugcatEyebrowRaise
             float zoom = 1f;
             bool zoomed = false;
             Vector2 offset = Vector2.zero;
+
+            #region Follow & Zoom
+
+            // Have camera follow the player
             if (self.room != null && cameraZoomAmount > 0f)
             {
-                //zoom = 1f;// self.room.roomSettings.GetEffectAmount(EnumExt_CameraZoomEffect.CameraZoom) * 10f;
                 zoom = cameraZoomAmount * 20f;
                 zoomed = true;
-                Creature creature = (self.followAbstractCreature == null) ? null : self.followAbstractCreature.realizedCreature;
+                
+                Creature? creature = self.followAbstractCreature == null ? null : self.followAbstractCreature.realizedCreature;
+                
                 if (creature != null)
                 {
-                    //Vector2 testPos = creature.bodyChunks[0].pos + creature.bodyChunks[0].vel + self.followCreatureInputForward * 2f;
                     Vector2 value = Vector2.Lerp(creature.bodyChunks[0].lastPos, creature.bodyChunks[0].pos, timeStacker);
                     if (creature.inShortcut)
                     {
                         Vector2? vector = self.room.game.shortcuts.OnScreenPositionOfInShortCutCreature(self.room, creature);
                         if (vector != null)
                         {
-                            //testPos = vector.Value;
                             value = vector.Value;
                         }
                     }
-                    offset = new Vector2((float)self.cameraNumber * 6000f, 0f) + (value - (self.pos + self.sSize / 2f));
+                    offset = new Vector2(self.cameraNumber * 6000f, 0f) + (value - (self.pos + self.sSize / 2f));
                 }
 
             }
+
+            // Zoom in
             if (zoomed)
             {
-                for (int i = 0; i < 11; i++) // 11 useful layers the rest if hud
+                // 11 useful layers, the reset is HUD
+                for (int i = 0; i < 11; i++)
                 {
-                    self.SpriteLayers[i].scale = 1f;
+                    self.SpriteLayers[i].scale = 1.0f;
                     self.SpriteLayers[i].SetPosition(Vector2.zero);
                     self.SpriteLayers[i].ScaleAroundPointRelative(self.sSize / 2f, zoom, zoom);
-
-                    //self.SpriteLayers[i].SetPosition(-offset);
                 }
                 self.offset = offset;
             }
             else
             {
-                // unzoom camera on effect slider to 0 or maybe if changeroom didnt call
-                for (int i = 0; i < 11; i++) // 11 useful layers the rest is hud
+                // Unzoom camera on effect slider to 0 or maybe if ChangeRoom didnt call
+                for (int i = 0; i < 11; i++)
                 {
                     self.SpriteLayers[i].scale = 1f;
                     self.SpriteLayers[i].SetPosition(Vector2.zero);
-
-                    //self.SpriteLayers[i].SetPosition(-offset);
                 }
-                self.offset = new Vector2((float)self.cameraNumber * 6000f, 0f);
+                self.offset = new Vector2(self.cameraNumber * 6000.0f, 0.0f);
             }
 
-            //self.levelGraphic.scale = zoom;
-            int theseed = 0;
+            int randomSeed = 0;
+
             if (zoomed)
             {
                 // deterministic random shake
-                theseed = UnityEngine.Random.seed;
-                UnityEngine.Random.seed = theseed;
+                randomSeed = Random.seed;
+                Random.seed = randomSeed;
             }
+
             orig(self, timeStacker, timeSpeed);
+
+            #endregion
+
             if (zoomed)
             {
-                // calculate stupid shake again
-                // an aternative to this would to spawn a spriteleaser and have it store its drawposition
+                Random.seed = randomSeed;
+                Vector2 shakeOffset = Vector2.Lerp(self.lastPos, self.pos, timeStacker);   
 
-                UnityEngine.Random.seed = theseed;
-                // coppypasta I just need the same exact viewport
-                Vector2 vector = Vector2.Lerp(self.lastPos, self.pos, timeStacker);
                 if (self.microShake > 0f)
                 {
-                    vector += RWCustom.Custom.RNV() * 8f * self.microShake * UnityEngine.Random.value;
+                    shakeOffset += Custom.RNV() * 8f * self.microShake * Random.value;
                 }
+            
                 if (!self.voidSeaMode)
                 {
-                    vector.x = Mathf.Clamp(vector.x, self.CamPos(self.currentCameraPosition).x + self.hDisplace + 8f - 20f, self.CamPos(self.currentCameraPosition).x + self.hDisplace + 8f + 20f);
-                    vector.y = Mathf.Clamp(vector.y, self.CamPos(self.currentCameraPosition).y + 8f - 7f, self.CamPos(self.currentCameraPosition).y + 33f);
+                    shakeOffset.x = Mathf.Clamp(shakeOffset.x, self.CamPos(self.currentCameraPosition).x + self.hDisplace + 8f - 20f, self.CamPos(self.currentCameraPosition).x + self.hDisplace + 8f + 20f);
+                    shakeOffset.y = Mathf.Clamp(shakeOffset.y, self.CamPos(self.currentCameraPosition).y + 8f - 7f, self.CamPos(self.currentCameraPosition).y + 33f);
                 }
                 else
                 {
-                    vector.y = Mathf.Min(vector.y, -528f);
+                    shakeOffset.y = Mathf.Min(shakeOffset.y, -528f);
                 }
-                vector = new Vector2(Mathf.Floor(vector.x), Mathf.Floor(vector.y));
-                vector.x -= 0.02f;
-                vector.y -= 0.02f;
 
-                // Magic offsets and magic shader rectangles
-                // THIS CRAP BUGS OUT ON SCREEN TRANSITIONS AND i DON'T UNDESTAND WHYYYYYY
-                Vector2 magicOffset = self.CamPos(self.currentCameraPosition) - vector;
-                //Debug.LogError("magic offset is " + magicOffset);
+                shakeOffset = self.CamPos(self.currentCameraPosition) - magicOffset;
+                shakeOffset.x -= 0.02f;
+                shakeOffset.y -= 0.02f;
+
+                Vector2 magicOffset = new Vector2(self.levelGraphic.x, self.levelGraphic.y) + self.offset + self.hardLevelGfxOffset;
+
                 //Vector4 center = new Vector4(
-                //	(-vector.x - 0.5f + self.levelGraphic.width / 2f + self.CamPos(self.currentCameraPosition).x) / self.sSize.x,
-                //	(-vector.y + 0.5f + self.levelGraphic.height / 2f + self.CamPos(self.currentCameraPosition).y) / self.sSize.y,
-                //	(-vector.x - 0.5f + self.levelGraphic.width / 2f + self.CamPos(self.currentCameraPosition).x) / self.sSize.x,
-                //	(-vector.y + 0.5f + self.levelGraphic.height / 2f + self.CamPos(self.currentCameraPosition).y) / self.sSize.y);
+                //	(-shakeOffset.x - 0.5f + self.levelGraphic.width / 2f + self.CamPos(self.currentCameraPosition).x) / self.sSize.x,
+                //	(-shakeOffset.y + 0.5f + self.levelGraphic.height / 2f + self.CamPos(self.currentCameraPosition).y) / self.sSize.y,
+                //	(-shakeOffset.x - 0.5f + self.levelGraphic.width / 2f + self.CamPos(self.currentCameraPosition).x) / self.sSize.x,
+                //	(-shakeOffset.y + 0.5f + self.levelGraphic.height / 2f + self.CamPos(self.currentCameraPosition).y) / self.sSize.y);
+
                 Vector4 center = new Vector4(
                     (magicOffset.x + self.levelGraphic.width / 2f) / self.sSize.x,
                     (magicOffset.y + 2f + self.levelGraphic.height / 2f) / self.sSize.y,
                     (magicOffset.x + self.levelGraphic.width / 2f) / self.sSize.x,
                     (magicOffset.y + 2f + self.levelGraphic.height / 2f) / self.sSize.y);
-                vector += self.offset;
-                Vector4 sprpos = new Vector4(
-                    (-vector.x + self.CamPos(self.currentCameraPosition).x) / self.sSize.x,
-                    (-vector.y + self.CamPos(self.currentCameraPosition).y) / self.sSize.y,
-                    (-vector.x + self.levelGraphic.width + self.CamPos(self.currentCameraPosition).x) / self.sSize.x,
-                    (-vector.y + self.levelGraphic.height + self.CamPos(self.currentCameraPosition).y) / self.sSize.y);
 
-                //sprpos -= new Vector4(17f / self.sSize.x, 18f / self.sSize.y, 17f / self.sSize.x, 18f / self.sSize.y) * (1f - 1f / zoom);
-                sprpos -= center;
-                sprpos *= zoom;
-                sprpos += center;
-                Shader.SetGlobalVector("_spriteRect", sprpos);
+                shakeOffset += self.offset;
+                
+                Vector4 spriteRectPos = new Vector4(
+                    (-shakeOffset.x + self.CamPos(self.currentCameraPosition).x) / self.sSize.x,
+                    (-shakeOffset.y + self.CamPos(self.currentCameraPosition).y) / self.sSize.y,
+                    (-shakeOffset.x + self.levelGraphic.width + self.CamPos(self.currentCameraPosition).x) / self.sSize.x,
+                    (-shakeOffset.y + self.levelGraphic.height + self.CamPos(self.currentCameraPosition).y) / self.sSize.y);
+
+                //spriteRectPos -= new Vector4(17f / self.sSize.x, 18f / self.sSize.y, 17f / self.sSize.x, 18f / self.sSize.y) * (1f - 1f / zoom);
+
+                spriteRectPos -= center;
+                spriteRectPos *= zoom;
+                spriteRectPos += center;
+
+                Shader.SetGlobalVector("_spriteRect", spriteRectPos);
+
                 Vector2 zooming = (1f - 1f / zoom) * new Vector2(self.sSize.x / self.room.PixelWidth, self.sSize.y / self.room.PixelHeight);
-                Shader.SetGlobalVector("_camInRoomRect", new Vector4(vector.x / self.room.PixelWidth + zooming.x / 2f, vector.y / self.room.PixelHeight + zooming.y / 2f,
+                Shader.SetGlobalVector("_camInRoomRect", new Vector4(shakeOffset.x / self.room.PixelWidth + zooming.x / 2f, shakeOffset.y / self.room.PixelHeight + zooming.y / 2f,
                     self.sSize.x / self.room.PixelWidth - zooming.x, self.sSize.y / self.room.PixelHeight - zooming.y));
+
                 Shader.SetGlobalVector("_screenSize", self.sSize);
             }
         }

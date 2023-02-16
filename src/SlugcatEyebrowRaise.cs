@@ -15,7 +15,7 @@ namespace SlugcatEyebrowRaise
     [BepInPlugin(MOD_ID + "." + AUTHOR, "Slugcat Eyebrow Raise", VERSION)]
     internal class SlugcatEyebrowRaise : BaseUnityPlugin
     {
-        public const string VERSION = "1.0.4";
+        public const string VERSION = "1.0.5";
         public const string MOD_ID = "slugcateyebrowraise";
         public const string AUTHOR = "forthbridge";
 
