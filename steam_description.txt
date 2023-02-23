@@ -2,10 +2,13 @@
  
 [h1]Check the Remix Menu Config to modify these and much more![/h1]
 
-[b][u]If 'Emerald's Tweaks' is installed, the mod may only work properly if you enable the graphics fix setting[/u][/b] (thanks Vallen!)
+[b]The camera zoom feature is incompatible with SBCameraScroll, if you want to use these mods together please disable it in the options![/b]
 
 [b][u]Source: https://github.com/forthbridge/slugcat-eyebrow-raise[/u]
 Please report any issues over there, or alternatively, contact me on Discord! (forthbridge#0683)[/b]
+
+[b]Version without the menu sounds:
+[u]https://steamcommunity.com/sharedfiles/filedetails/?id=2934221733[/u][/b]
 
 [h1]Credits[/h1]
 [list]
