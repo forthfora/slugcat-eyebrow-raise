@@ -498,11 +498,12 @@ namespace SlugcatEyebrowRaise
                     shakeOffset.y = Mathf.Min(shakeOffset.y, -528f);
                 }
 
-                shakeOffset = self.CamPos(self.currentCameraPosition) - magicOffset;
+                shakeOffset = new Vector2(Mathf.Floor(shakeOffset.x), Mathf.Floor(shakeOffset.y));
                 shakeOffset.x -= 0.02f;
                 shakeOffset.y -= 0.02f;
 
-                Vector2 magicOffset = new Vector2(self.levelGraphic.x, self.levelGraphic.y) + self.offset + self.hardLevelGfxOffset;
+                Vector2 magicOffset = self.CamPos(self.currentCameraPosition) - shakeOffset;
+                Vector2 textureOffset = shakeOffset + magicOffset;
 
                 //Vector4 center = new Vector4(
                 //	(-shakeOffset.x - 0.5f + self.levelGraphic.width / 2f + self.CamPos(self.currentCameraPosition).x) / self.sSize.x,
@@ -519,10 +520,10 @@ namespace SlugcatEyebrowRaise
                 shakeOffset += self.offset;
                 
                 Vector4 spriteRectPos = new Vector4(
-                    (-shakeOffset.x + self.CamPos(self.currentCameraPosition).x) / self.sSize.x,
-                    (-shakeOffset.y + self.CamPos(self.currentCameraPosition).y) / self.sSize.y,
-                    (-shakeOffset.x + self.levelGraphic.width + self.CamPos(self.currentCameraPosition).x) / self.sSize.x,
-                    (-shakeOffset.y + self.levelGraphic.height + self.CamPos(self.currentCameraPosition).y) / self.sSize.y);
+                    (-shakeOffset.x + textureOffset.x) / self.sSize.x,
+                    (-shakeOffset.y + textureOffset.y) / self.sSize.y,
+                    (-shakeOffset.x + self.levelGraphic.width + textureOffset.x) / self.sSize.x,
+                    (-shakeOffset.y + self.levelGraphic.height + textureOffset.y) / self.sSize.y);
 
                 //spriteRectPos -= new Vector4(17f / self.sSize.x, 18f / self.sSize.y, 17f / self.sSize.x, 18f / self.sSize.y) * (1f - 1f / zoom);
 
@@ -533,8 +534,11 @@ namespace SlugcatEyebrowRaise
                 Shader.SetGlobalVector("_spriteRect", spriteRectPos);
 
                 Vector2 zooming = (1f - 1f / zoom) * new Vector2(self.sSize.x / self.room.PixelWidth, self.sSize.y / self.room.PixelHeight);
-                Shader.SetGlobalVector("_camInRoomRect", new Vector4(shakeOffset.x / self.room.PixelWidth + zooming.x / 2f, shakeOffset.y / self.room.PixelHeight + zooming.y / 2f,
-                    self.sSize.x / self.room.PixelWidth - zooming.x, self.sSize.y / self.room.PixelHeight - zooming.y));
+                Shader.SetGlobalVector("_camInRoomRect", new Vector4(
+                    shakeOffset.x / self.room.PixelWidth + zooming.x / 2f,
+                    shakeOffset.y / self.room.PixelHeight + zooming.y / 2f,
+                    self.sSize.x / self.room.PixelWidth - zooming.x,
+                    self.sSize.y / self.room.PixelHeight - zooming.y));
 
                 Shader.SetGlobalVector("_screenSize", self.sSize);
             }
